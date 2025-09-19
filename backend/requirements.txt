@@ -1,8 +1,0 @@
-flask
-flask-sqlalchemy
-flask-jwt-extended
-flask-cors
-werkzeug
-mysqlclient
-redis
-pyjwt
