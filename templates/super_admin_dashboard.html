@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <!DOCTYPE html>
 <html lang="zh">
 <head>
@@ -160,3 +161,167 @@
     </script>
 </body>
 </html>
+=======
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>超级管理员 - 中心校区乒乓球管理系统</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+            display: flex;
+            height: 100vh;
+        }
+        /* 左侧导航 */
+        .sidebar {
+            width: 240px;
+            background: linear-gradient(180deg, #0072ff, #00c6ff);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            padding: 20px 0;
+        }
+        .sidebar h2 {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .sidebar a {
+            color: white;
+            padding: 12px 20px;
+            display: block;
+            text-decoration: none;
+            border-radius: 6px;
+            margin: 5px 15px;
+            transition: background 0.3s;
+        }
+        .sidebar a:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        /* 顶部栏 */
+        .topbar {
+            height: 60px;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        .topbar h3 {
+            margin: 0;
+            color: #333;
+        }
+        .topbar button {
+            background: #0072ff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .topbar button:hover {
+            background: #005ed6;
+        }
+        /* 主内容 */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .dashboard {
+            padding: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+        }
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+            cursor: pointer;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        .card h4 {
+            margin: 0 0 10px;
+            color: #0072ff;
+        }
+        .card p {
+            margin: 0;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <!-- 左侧导航栏 -->
+    <div class="sidebar">
+        <h2>超级管理员</h2>
+        <a href="#">🏠 首页</a>
+        <a href="#">🏫 校区管理</a>
+        <a href="#">👥 用户管理</a>
+        <a href="#">📅 课程预约</a>
+        <a href="#">💰 收费与退费</a>
+        <a href="#">🏆 月赛管理</a>
+        <a href="#">📩 系统消息</a>
+        <a href="#">📜 系统日志</a>
+    </div>
+
+    <!-- 主内容区 -->
+    <div class="main-content">
+        <!-- 顶部栏 -->
+        <div class="topbar">
+            <h3>中心校区乒乓球管理系统</h3>
+            <button onclick="logout()">退出登录</button>
+        </div>
+
+        <!-- 仪表盘卡片 -->
+        <div class="dashboard">
+            <div class="card" onclick="navigate('campuses')">
+                <h4>校区管理</h4>
+                <p>管理中心校区和其他分校区的基本信息。</p>
+            </div>
+            <div class="card" onclick="navigate('users')">
+                <h4>用户管理</h4>
+                <p>管理学员、教练员、校区管理员和超级管理员。</p>
+            </div>
+            <div class="card" onclick="navigate('appointments')">
+                <h4>课程预约</h4>
+                <p>查看和管理所有校区的课程预约信息。</p>
+            </div>
+            <div class="card" onclick="navigate('transactions')">
+                <h4>收费与退费</h4>
+                <p>处理训练费充值、扣费和退费。</p>
+            </div>
+            <div class="card" onclick="navigate('tournaments')">
+                <h4>月赛管理</h4>
+                <p>组织每月的比赛并生成赛程。</p>
+            </div>
+            <div class="card" onclick="navigate('messages')">
+                <h4>系统消息</h4>
+                <p>处理教练审核、取消预约提醒和换教练申请。</p>
+            </div>
+            <div class="card" onclick="navigate('logs')">
+                <h4>系统日志</h4>
+                <p>查询系统操作记录，确保安全与可追溯。</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function navigate(page) {
+            window.location.href = `/super_admin/${page}`;
+        }
+        function logout() {
+            window.location.href = '/logout';
+        }
+    </script>
+</body>
+</html>
+>>>>>>> 8d65d3b45f68d1ba1f9480b8853044acb8ea994f
