@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>超级管理员 - 中心校区乒乓球管理系统</title>
+    <title>校区管理员 - 乒乓球培训管理系统</title>
     <style>
         body {
             margin: 0;
@@ -15,7 +15,7 @@
         /* 左侧导航 */
         .sidebar {
             width: 240px;
-            background: linear-gradient(180deg, #0072ff, #00c6ff);
+            background: linear-gradient(180deg, #36d1dc, #5b86e5);
             color: white;
             display: flex;
             flex-direction: column;
@@ -52,7 +52,7 @@
             color: #333;
         }
         .topbar button {
-            background: #0072ff;
+            background: #36d1dc;
             color: white;
             border: none;
             padding: 8px 16px;
@@ -60,7 +60,7 @@
             cursor: pointer;
         }
         .topbar button:hover {
-            background: #005ed6;
+            background: #2c9fa8;
         }
         /* 主内容 */
         .main-content {
@@ -87,7 +87,7 @@
         }
         .card h4 {
             margin: 0 0 10px;
-            color: #0072ff;
+            color: #36d1dc;
         }
         .card p {
             margin: 0;
@@ -98,13 +98,12 @@
 <body>
     <!-- 左侧导航栏 -->
     <div class="sidebar">
-        <h2>超级管理员</h2>
+        <h2>校区管理员</h2>
         <a href="#">🏠 首页</a>
-        <a href="#">🏫 校区管理</a>
-        <a href="#">👥 用户管理</a>
-        <a href="#">📅 课程预约</a>
+        <a href="#">👨‍🎓 学员管理</a>
+        <a href="#">👨‍🏫 教练员管理</a>
+        <a href="#">📅 课程预约管理</a>
         <a href="#">💰 收费与退费</a>
-        <a href="#">🏆 月赛管理</a>
         <a href="#">📩 系统消息</a>
         <a href="#">📜 系统日志</a>
     </div>
@@ -113,46 +112,42 @@
     <div class="main-content">
         <!-- 顶部栏 -->
         <div class="topbar">
-            <h3>中心校区乒乓球管理系统</h3>
+            <h3>乒乓球培训管理系统 - 校区管理员端</h3>
             <button onclick="logout()">退出登录</button>
         </div>
 
         <!-- 仪表盘卡片 -->
         <div class="dashboard">
-            <div class="card" onclick="navigate('campuses')">
-                <h4>校区管理</h4>
-                <p>管理中心校区和其他分校区的基本信息。</p>
+            <div class="card" onclick="navigate('students')">
+                <h4>学员管理</h4>
+                <p>添加、修改、删除和查询本校区学员信息。</p>
             </div>
-            <div class="card" onclick="navigate('users')">
-                <h4>用户管理</h4>
-                <p>管理学员、教练员、校区管理员和超级管理员。</p>
+            <div class="card" onclick="navigate('coaches')">
+                <h4>教练员管理</h4>
+                <p>审核入职申请，修改教练员信息，调整等级。</p>
             </div>
             <div class="card" onclick="navigate('appointments')">
-                <h4>课程预约</h4>
-                <p>查看和管理所有校区的课程预约信息。</p>
+                <h4>课程预约管理</h4>
+                <p>查看、修改课程预约情况并通知相关人员。</p>
             </div>
             <div class="card" onclick="navigate('transactions')">
                 <h4>收费与退费</h4>
-                <p>处理训练费充值、扣费和退费。</p>
-            </div>
-            <div class="card" onclick="navigate('tournaments')">
-                <h4>月赛管理</h4>
-                <p>组织每月的比赛并生成赛程。</p>
+                <p>录入线下缴费，处理退费申请。</p>
             </div>
             <div class="card" onclick="navigate('messages')">
                 <h4>系统消息</h4>
-                <p>处理教练审核、取消预约提醒和换教练申请。</p>
+                <p>接收预约提醒、换教练请求及审核通知。</p>
             </div>
             <div class="card" onclick="navigate('logs')">
                 <h4>系统日志</h4>
-                <p>查询系统操作记录，确保安全与可追溯。</p>
+                <p>查询学员、教练员及校区相关的操作记录。</p>
             </div>
         </div>
     </div>
 
     <script>
         function navigate(page) {
-            window.location.href = `/super_admin/${page}`;
+            window.location.href = `/admin/${page}`;
         }
         function logout() {
             window.location.href = '/logout';

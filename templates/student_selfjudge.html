@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>学员端 - 训练评价</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f5f7fa;
+    }
+    .topbar {
+      height: 60px;
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      border-bottom: 1px solid #ddd;
+    }
+    .topbar h3 {
+      margin: 0;
+      color: #333;
+    }
+    .topbar button {
+      background: #ff512f;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .topbar button:hover {
+      background: #d63c20;
+    }
+    .container {
+      padding: 20px;
+      max-width: 900px;
+      margin: auto;
+    }
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    .card h4 {
+      margin: 0 0 15px;
+      color: #ff512f;
+    }
+    select, textarea, button {
+      width: 100%;
+      padding: 8px;
+      margin: 8px 0;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+    button {
+      background: #ff512f;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #d63c20;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      padding: 10px;
+      border: 1px solid #ddd;
+      text-align: left;
+      font-size: 14px;
+    }
+    th {
+      background: #f2f2f2;
+    }
+    .feedback {
+      color: #0072ff;
+      font-size: 13px;
+      margin-top: 4px;
+    }
+  </style>
+</head>
+<body>
+  <!-- 顶部栏 -->
+  <div class="topbar">
+    <h3>乒乓球培训管理系统 - 学员端</h3>
+    <button onclick="back()">返回主页</button>
+  </div>
+
+  <!-- 主体内容 -->
+  <div class="container">
+    <!-- 新评价 -->
+    <div class="card">
+      <h4>提交训练评价</h4>
+      <label for="lesson">选择课程：</label>
+      <select id="lesson">
+        <option value="">请选择已完成课程</option>
+        <option value="1">2025-09-15 10:00 - 王强教练</option>
+        <option value="2">2025-09-12 15:00 - 李华教练</option>
+      </select>
+      <label for="comment">我的收获与不足：</label>
+      <textarea id="comment" placeholder="请输入本次训练的收获和不足..."></textarea>
+      <button onclick="submitEvaluation()">提交评价</button>
+    </div>
+
+    <!-- 历史评价 -->
+    <div class="card">
+      <h4>历史评价记录</h4>
+      <table>
+        <thead>
+          <tr>
+            <th>课程时间</th>
+            <th>教练</th>
+            <th>我的评价</th>
+            <th>教练反馈</th>
+          </tr>
+        </thead>
+        <tbody id="records">
+          <tr>
+            <td>2025-09-10 09:00</td>
+            <td>王强</td>
+            <td>发球技术有所提高，但接发球仍需练习。</td>
+            <td><span class="feedback">接发球注意脚步移动，下次多练习。</span></td>
+          </tr>
+          <tr>
+            <td>2025-09-05 14:00</td>
+            <td>李华</td>
+            <td>正手攻球稳定性提升，体能需要加强。</td>
+            <td><span class="feedback">多做体能训练，提高耐力。</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    function back() {
+      window.location.href = "/student/home";
+    }
+    function submitEvaluation() {
+      const lesson = document.getElementById("lesson").value;
+      const comment = document.getElementById("comment").value.trim();
+      if (!lesson) {
+        alert("请选择课程！");
+        return;
+      }
+      if (!comment) {
+        alert("请输入评价内容！");
+        return;
+      }
+      alert(`评价已提交：课程=${lesson}, 内容=${comment}`);
+      // TODO: 调用后端API提交评价
+      document.getElementById("comment").value = "";
+    }
+  </script>
+</body>
+</html>

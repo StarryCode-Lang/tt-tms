@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>超级管理员 - 中心校区乒乓球管理系统</title>
+    <title>学员端 - 乒乓球培训管理系统</title>
     <style>
         body {
             margin: 0;
@@ -15,7 +15,7 @@
         /* 左侧导航 */
         .sidebar {
             width: 240px;
-            background: linear-gradient(180deg, #0072ff, #00c6ff);
+            background: linear-gradient(180deg, #ff512f, #dd2476);
             color: white;
             display: flex;
             flex-direction: column;
@@ -52,7 +52,7 @@
             color: #333;
         }
         .topbar button {
-            background: #0072ff;
+            background: #ff512f;
             color: white;
             border: none;
             padding: 8px 16px;
@@ -60,7 +60,7 @@
             cursor: pointer;
         }
         .topbar button:hover {
-            background: #005ed6;
+            background: #d63c20;
         }
         /* 主内容 */
         .main-content {
@@ -87,7 +87,7 @@
         }
         .card h4 {
             margin: 0 0 10px;
-            color: #0072ff;
+            color: #ff512f;
         }
         .card p {
             margin: 0;
@@ -98,61 +98,61 @@
 <body>
     <!-- 左侧导航栏 -->
     <div class="sidebar">
-        <h2>超级管理员</h2>
+        <h2>学员端</h2>
         <a href="#">🏠 首页</a>
-        <a href="#">🏫 校区管理</a>
-        <a href="#">👥 用户管理</a>
+        <a href="#">👨‍🏫 教练查询</a>
         <a href="#">📅 课程预约</a>
-        <a href="#">💰 收费与退费</a>
-        <a href="#">🏆 月赛管理</a>
+        <a href="#">💰 我的账户</a>
+        <a href="#">🏆 月赛报名</a>
+        <a href="#">📖 我的课表</a>
+        <a href="#">📝 训练评价</a>
         <a href="#">📩 系统消息</a>
-        <a href="#">📜 系统日志</a>
     </div>
 
     <!-- 主内容区 -->
     <div class="main-content">
         <!-- 顶部栏 -->
         <div class="topbar">
-            <h3>中心校区乒乓球管理系统</h3>
+            <h3>乒乓球培训管理系统 - 学员端</h3>
             <button onclick="logout()">退出登录</button>
         </div>
 
         <!-- 仪表盘卡片 -->
         <div class="dashboard">
-            <div class="card" onclick="navigate('campuses')">
-                <h4>校区管理</h4>
-                <p>管理中心校区和其他分校区的基本信息。</p>
-            </div>
-            <div class="card" onclick="navigate('users')">
-                <h4>用户管理</h4>
-                <p>管理学员、教练员、校区管理员和超级管理员。</p>
+            <div class="card" onclick="navigate('coaches')">
+                <h4>教练查询</h4>
+                <p>按姓名、性别、年龄查找教练，或浏览校区教练列表。</p>
             </div>
             <div class="card" onclick="navigate('appointments')">
                 <h4>课程预约</h4>
-                <p>查看和管理所有校区的课程预约信息。</p>
+                <p>选择教练并预约训练课程，查看课表空闲时间。</p>
             </div>
-            <div class="card" onclick="navigate('transactions')">
-                <h4>收费与退费</h4>
-                <p>处理训练费充值、扣费和退费。</p>
+            <div class="card" onclick="navigate('account')">
+                <h4>我的账户</h4>
+                <p>充值、查看余额，训练费支付与退费记录。</p>
             </div>
-            <div class="card" onclick="navigate('tournaments')">
-                <h4>月赛管理</h4>
-                <p>组织每月的比赛并生成赛程。</p>
+            <div class="card" onclick="navigate('tournament')">
+                <h4>月赛报名</h4>
+                <p>报名参加月赛，查看分组与赛程。</p>
+            </div>
+            <div class="card" onclick="navigate('schedule')">
+                <h4>我的课表</h4>
+                <p>查询即将到来的训练和比赛安排。</p>
+            </div>
+            <div class="card" onclick="navigate('evaluation')">
+                <h4>训练评价</h4>
+                <p>记录本次课程的收获与不足，查看教练反馈。</p>
             </div>
             <div class="card" onclick="navigate('messages')">
                 <h4>系统消息</h4>
-                <p>处理教练审核、取消预约提醒和换教练申请。</p>
-            </div>
-            <div class="card" onclick="navigate('logs')">
-                <h4>系统日志</h4>
-                <p>查询系统操作记录，确保安全与可追溯。</p>
+                <p>接收预约提醒、换教练通知和比赛通知。</p>
             </div>
         </div>
     </div>
 
     <script>
         function navigate(page) {
-            window.location.href = `/super_admin/${page}`;
+            window.location.href = `/student/${page}`;
         }
         function logout() {
             window.location.href = '/logout';
