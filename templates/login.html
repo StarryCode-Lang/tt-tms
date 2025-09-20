@@ -111,7 +111,17 @@
                 //修改了这里
                 if (role === "super_admin") {
                     window.location.href = "/super_admin/dashboard";
-                } else {
+                }
+                else if (role === "student"){
+                    window.location.href = "/student-dashboard";
+                }
+                else if(role === "coach"){
+                    window.location.href = "/coach-dashboard";
+                }
+                else if(role === "campus_admin"){
+                    window.location.href = "/campus_admin-dashboard";
+                }
+                else {
                     window.location.href = `/${role}-dashboard`;
                 }
             } else {

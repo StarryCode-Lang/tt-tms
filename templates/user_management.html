@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>用户管理 - 超级管理员</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+            display: flex;
+            height: 100vh;
+        }
+        .sidebar {
+            width: 220px;
+            background: linear-gradient(180deg, #0072ff, #00c6ff);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            padding: 20px 0;
+        }
+        .sidebar h2 {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .sidebar a {
+            color: white;
+            padding: 12px 20px;
+            display: block;
+            text-decoration: none;
+            border-radius: 6px;
+            margin: 5px 15px;
+            transition: background 0.3s;
+        }
+        .sidebar a:hover, .sidebar a.active {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        .main-content {
+            flex: 1;
+            padding: 20px;
+        }
+        header h1 {
+            margin: 0 0 20px;
+            color: #333;
+        }
+        button {
+            background: #0072ff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-bottom: 15px;
+        }
+        button:hover {
+            background: #005ed6;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+        }
+        th {
+            background: #0072ff;
+            color: white;
+        }
+        tr:hover td {
+            background: #f1f5ff;
+        }
+        a.action-link {
+            color: #0072ff;
+            text-decoration: none;
+            margin: 0 5px;
+        }
+        a.action-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>超级管理员</h2>
+        <a href="/super_admin/dashboard">🏠 首页</a>
+        <a href="/super_admin/campus">🏫 校区管理</a>
+        <a href="/super_admin/user" class="active">👥 用户管理</a>
+        <a href="/logout">🚪 退出</a>
+    </div>
+
+    <div class="main-content">
+        <header>
+            <h1>用户管理</h1>
+        </header>
+        <section>
+            <button onclick="location.href='/super_admin/user/add'">➕ 添加用户</button>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>用户名</th>
+                        <th>姓名</th>
+                        <th>性别</th>
+                        <th>年龄</th>
+                        <th>电话</th>
+                        <th>Email</th>
+                        <th>角色</th>
+                        <th>校区</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>{{ user.id }}</td>
+                        <td>{{ user.username }}</td>
+                        <td>{{ user.real_name }}</td>
+                        <td>{{ user.gender }}</td>
+                        <td>{{ user.age }}</td>
+                        <td>{{ user.phone }}</td>
+                        <td>{{ user.email }}</td>
+                        <td>{{ user.role }}</td>
+                        <td>{{ user.campus_name }}</td>
+                        <td>
+                            <a href="/super_admin/user/edit/{{ user.id }}" class="action-link">编辑</a>
+                            <a href="/super_admin/user/delete/{{ user.id }}" class="action-link" onclick="return confirm('确定要删除吗？')">删除</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+    </div>
+</body>
+</html>

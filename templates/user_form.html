@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ '编辑用户' if user else '添加用户' }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f5f7fa; padding: 40px; }
+        .form-container { background: white; padding: 20px; border-radius: 8px; width: 400px; margin: auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h2 { margin-top: 0; color: #0072ff; }
+        label { display: block; margin-top: 10px; color: #333; }
+        input, select { width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ddd; border-radius: 5px; }
+        button { margin-top: 15px; background: #0072ff; color: white; border: none; padding: 10px; width: 100%; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #005ed6; }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h2>{{ '编辑用户' if user else '添加用户' }}</h2>
+        <form method="post">
+            <label>用户名</label>
+            <input type="text" name="username" value="{{ user.username if user else '' }}" required>
+
+            <label>姓名</label>
+            <input type="text" name="real_name" value="{{ user.real_name if user else '' }}" required>
+
+            <label>性别</label>
+            <select name="gender">
+                <option value="男" {% if user and user.gender == '男' %}selected{% endif %}>男</option>
+                <option value="女" {% if user and user.gender == '女' %}selected{% endif %}>女</option>
+            </select>
+
+            <label>年龄</label>
+            <input type="number" name="age" value="{{ user.age if user else '' }}">
+
+            <label>电话</label>
+            <input type="text" name="phone" value="{{ user.phone if user else '' }}">
+
+            <label>Email</label>
+            <input type="email" name="email" value="{{ user.email if user else '' }}">
+
+            <label>角色</label>
+            <select name="role">
+                <option value="student" {% if user and user.role == 'student' %}selected{% endif %}>学生</option>
+                <option value="instructor" {% if user and user.role == 'instructor' %}selected{% endif %}>教师</option>
+                <option value="admin" {% if user and user.role == 'admin' %}selected{% endif %}>管理员</option>
+                <option value="super_admin" {% if user and user.role == 'super_admin' %}selected{% endif %}>超级管理员</option>
+            </select>
+
+            <label>所属校区</label>
+            <select name="campus_id">
+                {% for campus in campuses %}
+                <option value="{{ campus.id }}" {% if user and user.campus_id == campus.id %}selected{% endif %}>{{ campus.name }}</option>
+                {% endfor %}
+            </select>
+
+            <label>密码</label>
+            <input type="password" name="password" value="{{ user.password if user else '' }}" required>
+
+            <button type="submit">提交</button>
+        </form>
+    </div>
+</body>
+</html>
