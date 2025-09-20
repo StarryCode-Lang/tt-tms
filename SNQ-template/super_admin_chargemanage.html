@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>超级管理员 - 收费与退费管理</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f5f7fa;
+    }
+    .topbar {
+      height: 60px;
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      border-bottom: 1px solid #ddd;
+    }
+    .topbar h3 {
+      margin: 0;
+      color: #333;
+    }
+    .topbar button {
+      background: #0072ff;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .topbar button:hover {
+      background: #005ed6;
+    }
+    .container {
+      padding: 20px;
+      max-width: 1200px;
+      margin: auto;
+    }
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    .card h4 {
+      margin: 0 0 15px;
+      color: #0072ff;
+    }
+    input, select, button {
+      padding: 8px;
+      margin: 5px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    button {
+      background: #0072ff;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #005ed6;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      padding: 10px;
+      border: 1px solid #ddd;
+      text-align: center;
+      font-size: 14px;
+    }
+    th {
+      background: #f2f2f2;
+    }
+    .actions button {
+      margin: 0 4px;
+      padding: 4px 10px;
+      font-size: 13px;
+    }
+    .income { color: green; font-weight: bold; }
+    .expense { color: red; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <!-- 顶部栏 -->
+  <div class="topbar">
+    <h3>乒乓球培训管理系统 - 超级管理员端</h3>
+    <button onclick="back()">返回主页</button>
+  </div>
+
+  <!-- 主体内容 -->
+  <div class="container">
+    <!-- 查询条件 -->
+    <div class="card">
+      <h4>查询收费与退费记录</h4>
+      <input type="text" id="student" placeholder="学员姓名">
+      <select id="campus">
+        <option value="">所属校区</option>
+        <option value="center">中心校区</option>
+        <option value="branch1">分校区一</option>
+      </select>
+      <input type="date" id="date">
+      <button onclick="searchRecords()">查询</button>
+    </div>
+
+    <!-- 手动录入 -->
+    <div class="card">
+      <h4>录入收费 / 退费</h4>
+      <form id="recordForm" onsubmit="addRecord(event)">
+        <input type="text" id="studentName" placeholder="学员姓名" required>
+        <select id="recordType" required>
+          <option value="">类型</option>
+          <option value="充值">充值</option>
+          <option value="扣费">扣费</option>
+          <option value="退费">退费</option>
+        </select>
+        <input type="number" id="amount" placeholder="金额 (元)" required>
+        <input type="date" id="recordDate" required>
+        <input type="text" id="note" placeholder="备注">
+        <button type="submit">保存记录</button>
+      </form>
+    </div>
+
+    <!-- 收费记录表 -->
+    <div class="card">
+      <h4>收费与退费记录</h4>
+      <table>
+        <thead>
+          <tr>
+            <th>学员</th><th>校区</th><th>类型</th><th>金额</th><th>日期</th><th>备注</th><th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="recordList">
+          <tr>
+            <td>张三</td><td>中心校区</td><td class="income">充值</td><td class="income">+200</td><td>2025-09-10</td><td>微信支付</td>
+            <td class="actions">
+              <button onclick="editRecord(1)">修改</button>
+              <button onclick="deleteRecord(1)">删除</button>
+            </td>
+          </tr>
+          <tr>
+            <td>李四</td><td>分校区一</td><td class="expense">退费</td><td class="expense">-100</td><td>2025-09-12</td><td>报名取消</td>
+            <td class="actions">
+              <button onclick="editRecord(2)">修改</button>
+              <button onclick="deleteRecord(2)">删除</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    function back() {
+      window.location.href = "/super_admin/home";
+    }
+    function searchRecords() {
+      const student = document.getElementById("student").value;
+      const campus = document.getElementById("campus").value;
+      const date = document.getElementById("date").value;
+      alert(`查询条件：学员=${student}, 校区=${campus}, 日期=${date}`);
+      // TODO: 调用后端 API，刷新 recordList
+    }
+    function addRecord(e) {
+      e.preventDefault();
+      const student = document.getElementById("studentName").value;
+      const type = document.getElementById("recordType").value;
+      const amount = document.getElementById("amount").value;
+      const date = document.getElementById("recordDate").value;
+      alert(`已保存记录：学员=${student}, 类型=${type}, 金额=${amount}, 日期=${date}`);
+      // TODO: 调用后端 API 保存记录
+      document.getElementById("recordForm").reset();
+    }
+    function editRecord(id) {
+      alert("修改记录，ID=" + id);
+      // TODO: 打开编辑窗口，调用后端 API 保存修改
+    }
+    function deleteRecord(id) {
+      if (confirm("确认删除该记录？")) {
+        alert("已删除记录，ID=" + id);
+        // TODO: 调用后端 API 删除
+      }
+    }
+  </script>
+</body>
+</html>

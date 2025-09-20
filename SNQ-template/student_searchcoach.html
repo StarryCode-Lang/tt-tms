@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>学员端 - 教练查询</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f5f7fa;
+    }
+    .topbar {
+      height: 60px;
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      border-bottom: 1px solid #ddd;
+    }
+    .topbar h3 {
+      margin: 0;
+      color: #333;
+    }
+    .topbar button {
+      background: #ff512f;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .topbar button:hover {
+      background: #d63c20;
+    }
+    .container {
+      padding: 20px;
+      max-width: 1000px;
+      margin: auto;
+    }
+    .search-box {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    .search-box h4 {
+      margin: 0 0 15px;
+      color: #ff512f;
+    }
+    .search-box input, .search-box select, .search-box button {
+      padding: 8px;
+      margin: 5px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+    }
+    .search-box button {
+      background: #ff512f;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    .search-box button:hover {
+      background: #d63c20;
+    }
+    .coach-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 20px;
+    }
+    .coach-card {
+      background: white;
+      border-radius: 12px;
+      padding: 15px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    .coach-card img {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-bottom: 10px;
+    }
+    .coach-card h4 {
+      margin: 5px 0;
+      color: #333;
+    }
+    .coach-card p {
+      margin: 4px 0;
+      color: #555;
+      font-size: 14px;
+    }
+    .coach-card button {
+      margin-top: 10px;
+      background: #ff512f;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .coach-card button:hover {
+      background: #d63c20;
+    }
+  </style>
+</head>
+<body>
+  <!-- 顶部栏 -->
+  <div class="topbar">
+    <h3>乒乓球培训管理系统 - 学员端</h3>
+    <button onclick="back()">返回主页</button>
+  </div>
+
+  <!-- 主体内容 -->
+  <div class="container">
+    <!-- 查询条件 -->
+    <div class="search-box">
+      <h4>教练查询</h4>
+      <form id="searchForm" onsubmit="searchCoaches(event)">
+        <input type="text" id="name" placeholder="姓名">
+        <select id="gender">
+          <option value="">性别</option>
+          <option value="男">男</option>
+          <option value="女">女</option>
+        </select>
+        <input type="number" id="age" placeholder="年龄">
+        <button type="submit">🔍 查询</button>
+        <button type="button" onclick="browseAll()">📋 浏览全部</button>
+      </form>
+    </div>
+
+    <!-- 查询结果 -->
+    <div class="coach-list" id="coachList">
+      <!-- 示例教练卡片 -->
+      <div class="coach-card">
+        <img src="https://via.placeholder.com/100" alt="教练照片">
+        <h4>王强</h4>
+        <p>性别：男</p>
+        <p>年龄：35</p>
+        <p>获奖信息：全国锦标赛亚军</p>
+        <button onclick="selectCoach('王强')">选中教练</button>
+      </div>
+      <div class="coach-card">
+        <img src="https://via.placeholder.com/100" alt="教练照片">
+        <h4>李华</h4>
+        <p>性别：女</p>
+        <p>年龄：29</p>
+        <p>获奖信息：省运会冠军</p>
+        <button onclick="selectCoach('李华')">选中教练</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function back() {
+      window.location.href = "/student/home";
+    }
+    function searchCoaches(e) {
+      e.preventDefault();
+      const name = document.getElementById('name').value;
+      const gender = document.getElementById('gender').value;
+      const age = document.getElementById('age').value;
+      alert(`执行查询：姓名=${name}, 性别=${gender}, 年龄=${age}`);
+      // 这里应调用后端API获取查询结果并更新 coachList
+    }
+    function browseAll() {
+      alert("显示全部教练员列表");
+      // 这里应调用后端API返回所有教练数据
+    }
+    function selectCoach(name) {
+      alert(`已向教练 ${name} 发起选中申请`);
+      // 这里应调用后端接口，提交选中申请
+    }
+  </script>
+</body>
+</html>

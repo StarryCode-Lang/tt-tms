@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>超级管理员 - 系统消息管理</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f5f7fa;
+    }
+    .topbar {
+      height: 60px;
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      border-bottom: 1px solid #ddd;
+    }
+    .topbar h3 {
+      margin: 0;
+      color: #333;
+    }
+    .topbar button {
+      background: #0072ff;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .topbar button:hover {
+      background: #005ed6;
+    }
+    .container {
+      padding: 20px;
+      max-width: 1000px;
+      margin: auto;
+    }
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    .card h4 {
+      margin: 0 0 15px;
+      color: #0072ff;
+    }
+    input, select, textarea, button {
+      padding: 8px;
+      margin: 5px 0;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+      width: 100%;
+    }
+    textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+    button {
+      background: #0072ff;
+      color: white;
+      cursor: pointer;
+      width: auto;
+    }
+    button:hover {
+      background: #005ed6;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      padding: 10px;
+      border: 1px solid #ddd;
+      text-align: center;
+      font-size: 14px;
+    }
+    th {
+      background: #f2f2f2;
+    }
+    .actions button {
+      margin: 0 4px;
+      padding: 4px 10px;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <!-- 顶部栏 -->
+  <div class="topbar">
+    <h3>乒乓球培训管理系统 - 超级管理员端</h3>
+    <button onclick="back()">返回主页</button>
+  </div>
+
+  <!-- 主体内容 -->
+  <div class="container">
+    <!-- 发布消息 -->
+    <div class="card">
+      <h4>发布系统消息</h4>
+      <form id="msgForm" onsubmit="sendMessage(event)">
+        <input type="text" id="title" placeholder="消息标题" required>
+        <textarea id="content" placeholder="消息内容" required></textarea>
+        <select id="target" required>
+          <option value="">请选择接收对象</option>
+          <option value="all">全体用户</option>
+          <option value="students">学员</option>
+          <option value="coaches">教练员</option>
+          <option value="admins">校区管理员</option>
+        </select>
+        <button type="submit">发送</button>
+      </form>
+    </div>
+
+    <!-- 消息列表 -->
+    <div class="card">
+      <h4>已发布消息</h4>
+      <table>
+        <thead>
+          <tr>
+            <th>标题</th><th>内容</th><th>接收对象</th><th>发布时间</th><th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="msgList">
+          <tr>
+            <td>系统升级通知</td>
+            <td>本系统将于9月20日凌晨维护升级，请注意使用安排。</td>
+            <td>全体用户</td>
+            <td>2025-09-15 10:00</td>
+            <td class="actions">
+              <button onclick="editMsg(1)">修改</button>
+              <button onclick="deleteMsg(1)">删除</button>
+            </td>
+          </tr>
+          <tr>
+            <td>月赛报名提醒</td>
+            <td>9月月赛报名即将截止，请学员尽快报名。</td>
+            <td>学员</td>
+            <td>2025-09-12 09:30</td>
+            <td class="actions">
+              <button onclick="editMsg(2)">修改</button>
+              <button onclick="deleteMsg(2)">删除</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    function back() {
+      window.location.href = "/super_admin/home";
+    }
+    function sendMessage(e) {
+      e.preventDefault();
+      const title = document.getElementById("title").value;
+      const content = document.getElementById("content").value;
+      const target = document.getElementById("target").value;
+      alert(`已发送消息：标题=${title}, 目标=${target}`);
+      // TODO: 调用后端 API 保存并推送消息
+      document.getElementById("msgForm").reset();
+    }
+    function editMsg(id) {
+      alert("编辑消息，ID=" + id);
+      // TODO: 打开编辑窗口，调用后端 API 修改
+    }
+    function deleteMsg(id) {
+      if (confirm("确认删除该消息？")) {
+        alert("已删除消息，ID=" + id);
+        // TODO: 调用后端 API 删除
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>教练端 - 我的课程</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f5f7fa;
+    }
+    .topbar {
+      height: 60px;
+      background: #0072ff;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+    }
+    .topbar h3 { margin: 0; }
+    .topbar button {
+      background: white;
+      color: #0072ff;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .container {
+      padding: 20px;
+      max-width: 1100px;
+      margin: auto;
+    }
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    .card h4 {
+      margin: 0 0 15px;
+      color: #0072ff;
+    }
+    input, select, button {
+      padding: 8px;
+      margin: 5px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    button {
+      background: #0072ff;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #005ed6;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      padding: 10px;
+      border: 1px solid #ddd;
+      text-align: center;
+      font-size: 14px;
+    }
+    th { background: #f2f2f2; }
+    .status-pending { color: orange; font-weight: bold; }
+    .status-confirmed { color: green; font-weight: bold; }
+    .status-cancelled { color: red; font-weight: bold; }
+    .actions button {
+      margin: 0 4px;
+      padding: 4px 10px;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <!-- 顶部栏 -->
+  <div class="topbar">
+    <h3>教练端 - 我的课程</h3>
+    <button onclick="back()">返回首页</button>
+  </div>
+
+  <!-- 主体内容 -->
+  <div class="container">
+    <!-- 查询条件 -->
+    <div class="card">
+      <h4>查询课程</h4>
+      <input type="date" id="date">
+      <select id="campus">
+        <option value="">所属校区</option>
+        <option value="center">中心校区</option>
+        <option value="branch1">分校区一</option>
+      </select>
+      <input type="text" id="student" placeholder="学员姓名">
+      <button onclick="searchCourses()">查询</button>
+    </div>
+
+    <!-- 课程列表 -->
+    <div class="card">
+      <h4>课程预约列表</h4>
+      <table>
+        <thead>
+          <tr>
+            <th>学员</th>
+            <th>校区</th>
+            <th>日期</th>
+            <th>时间段</th>
+            <th>球台</th>
+            <th>状态</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="courseList">
+          <tr>
+            <td>张三</td>
+            <td>中心校区</td>
+            <td>2025-09-21</td>
+            <td>09:00-10:00</td>
+            <td>2号台</td>
+            <td class="status-pending">待确认</td>
+            <td class="actions">
+              <button onclick="confirmCourse(1)">确认</button>
+              <button onclick="cancelCourse(1)">取消</button>
+            </td>
+          </tr>
+          <tr>
+            <td>李四</td>
+            <td>分校区一</td>
+            <td>2025-09-22</td>
+            <td>15:00-16:00</td>
+            <td>自动分配</td>
+            <td class="status-confirmed">已确认</td>
+            <td class="actions">
+              <button onclick="cancelCourse(2)">取消</button>
+            </td>
+          </tr>
+          <tr>
+            <td>王五</td>
+            <td>中心校区</td>
+            <td>2025-09-23</td>
+            <td>18:00-19:00</td>
+            <td>5号台</td>
+            <td class="status-cancelled">已取消</td>
+            <td class="actions">—</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    function back() {
+      window.location.href = "/coach/home";
+    }
+    function searchCourses() {
+      const date = document.getElementById("date").value;
+      const campus = document.getElementById("campus").value;
+      const student = document.getElementById("student").value;
+      alert(`查询课程：日期=${date}, 校区=${campus}, 学员=${student}`);
+      // TODO: 调用后端 API，刷新 courseList
+    }
+    function confirmCourse(id) {
+      alert("已确认课程，ID=" + id);
+      // TODO: 调用后端 API 确认课程
+    }
+    function cancelCourse(id) {
+      if (confirm("确认取消课程？")) {
+        alert("已取消课程，ID=" + id);
+        // TODO: 调用后端 API 取消课程
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>教练端 - 学员管理</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f5f7fa;
+    }
+    .topbar {
+      height: 60px;
+      background: #0072ff;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+    }
+    .topbar h3 { margin: 0; }
+    .topbar button {
+      background: white;
+      color: #0072ff;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .container {
+      padding: 20px;
+      max-width: 1100px;
+      margin: auto;
+    }
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    .card h4 {
+      margin: 0 0 15px;
+      color: #0072ff;
+    }
+    input, select, button {
+      padding: 8px;
+      margin: 5px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    button {
+      background: #0072ff;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #005ed6;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      padding: 10px;
+      border: 1px solid #ddd;
+      text-align: center;
+      font-size: 14px;
+    }
+    th { background: #f2f2f2; }
+    .actions button {
+      margin: 0 4px;
+      padding: 4px 10px;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <!-- 顶部栏 -->
+  <div class="topbar">
+    <h3>教练端 - 学员管理</h3>
+    <button onclick="back()">返回首页</button>
+  </div>
+
+  <!-- 主体内容 -->
+  <div class="container">
+    <!-- 查询条件 -->
+    <div class="card">
+      <h4>查询学员</h4>
+      <input type="text" id="studentName" placeholder="学员姓名">
+      <select id="campus">
+        <option value="">所属校区</option>
+        <option value="center">中心校区</option>
+        <option value="branch1">分校区一</option>
+      </select>
+      <select id="ageRange">
+        <option value="">年龄段</option>
+        <option value="child">10岁以下</option>
+        <option value="teen">10-18岁</option>
+        <option value="adult">18岁以上</option>
+      </select>
+      <button onclick="searchStudents()">查询</button>
+    </div>
+
+    <!-- 学员列表 -->
+    <div class="card">
+      <h4>我的学员列表</h4>
+      <table>
+        <thead>
+          <tr>
+            <th>姓名</th><th>性别</th><th>年龄</th><th>校区</th><th>电话</th><th>余额</th><th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="studentList">
+          <tr>
+            <td>张三</td><td>男</td><td>15</td><td>中心校区</td><td>13800000000</td><td>￥200</td>
+            <td class="actions">
+              <button onclick="viewDetail('张三')">查看详情</button>
+              <button onclick="addNote('张三')">添加备注</button>
+            </td>
+          </tr>
+          <tr>
+            <td>李四</td><td>女</td><td>17</td><td>分校区一</td><td>13911111111</td><td>￥120</td>
+            <td class="actions">
+              <button onclick="viewDetail('李四')">查看详情</button>
+              <button onclick="addNote('李四')">添加备注</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    function back() {
+      window.location.href = "/coach/home";
+    }
+    function searchStudents() {
+      const name = document.getElementById("studentName").value;
+      const campus = document.getElementById("campus").value;
+      const ageRange = document.getElementById("ageRange").value;
+      alert(`查询条件：姓名=${name}, 校区=${campus}, 年龄段=${ageRange}`);
+      // TODO: 调用后端 API，刷新 studentList
+    }
+    function viewDetail(name) {
+      alert("查看学员详情：" + name);
+      // TODO: 跳转到学员详情页面，展示训练记录、月赛成绩
+    }
+    function addNote(name) {
+      const note = prompt("请输入对 " + name + " 的备注：");
+      if (note) {
+        alert("已保存备注：" + note);
+        // TODO: 调用后端 API 保存备注
+      }
+    }
+  </script>
+</body>
+</html>

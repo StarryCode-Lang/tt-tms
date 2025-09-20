@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>超级管理员 - 月赛管理</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f5f7fa;
+    }
+    .topbar {
+      height: 60px;
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      border-bottom: 1px solid #ddd;
+    }
+    .topbar h3 {
+      margin: 0;
+      color: #333;
+    }
+    .topbar button {
+      background: #0072ff;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .topbar button:hover {
+      background: #005ed6;
+    }
+    .container {
+      padding: 20px;
+      max-width: 1200px;
+      margin: auto;
+    }
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    .card h4 {
+      margin: 0 0 15px;
+      color: #0072ff;
+    }
+    button {
+      padding: 6px 12px;
+      margin: 5px 0;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      background: #0072ff;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #005ed6;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      padding: 10px;
+      border: 1px solid #ddd;
+      text-align: center;
+      font-size: 14px;
+    }
+    th {
+      background: #f2f2f2;
+    }
+    .actions button {
+      margin: 0 4px;
+      padding: 4px 10px;
+      font-size: 13px;
+    }
+    .info {
+      font-size: 14px;
+      color: green;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+  <!-- 顶部栏 -->
+  <div class="topbar">
+    <h3>乒乓球培训管理系统 - 超级管理员端</h3>
+    <button onclick="back()">返回主页</button>
+  </div>
+
+  <!-- 主体内容 -->
+  <div class="container">
+    <!-- 报名管理 -->
+    <div class="card">
+      <h4>报名情况</h4>
+      <table>
+        <thead>
+          <tr>
+            <th>学员姓名</th><th>校区</th><th>组别</th><th>报名状态</th><th>操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>张三</td><td>中心校区</td><td>甲组</td><td>已报名</td>
+            <td class="actions">
+              <button onclick="cancelRegister('张三')">取消报名</button>
+            </td>
+          </tr>
+          <tr>
+            <td>李四</td><td>分校区一</td><td>乙组</td><td>已报名</td>
+            <td class="actions">
+              <button onclick="cancelRegister('李四')">取消报名</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <button onclick="generateSchedule()">生成赛程</button>
+      <div class="info" id="genInfo"></div>
+    </div>
+
+    <!-- 赛程安排 -->
+    <div class="card">
+      <h4>赛程安排</h4>
+      <table>
+        <thead>
+          <tr>
+            <th>组别</th><th>轮次</th><th>对阵</th><th>球台</th><th>时间</th><th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="scheduleList">
+          <tr>
+            <td>甲组</td><td>第1轮</td><td>张三 vs 王五</td><td>1号台</td><td>2025-09-28 09:00</td>
+            <td class="actions">
+              <button onclick="editMatch(1)">修改</button>
+              <button onclick="deleteMatch(1)">删除</button>
+            </td>
+          </tr>
+          <tr>
+            <td>乙组</td><td>第1轮</td><td>李四 vs 赵六</td><td>2号台</td><td>2025-09-28 09:00</td>
+            <td class="actions">
+              <button onclick="editMatch(2)">修改</button>
+              <button onclick="deleteMatch(2)">删除</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    function back() {
+      window.location.href = "/super_admin/home";
+    }
+    function cancelRegister(student) {
+      if (confirm("确认取消报名：" + student + "？")) {
+        alert("已取消 " + student + " 的报名");
+        // TODO: 调用后端 API
+      }
+    }
+    function generateSchedule() {
+      document.getElementById("genInfo").innerText = "赛程已生成！请在下方查看。";
+      // TODO: 调用后端 API 生成赛程（全循环或淘汰制）
+    }
+    function editMatch(id) {
+      alert("修改赛程，ID=" + id);
+      // TODO: 打开编辑对话框，修改对阵/球台/时间
+    }
+    function deleteMatch(id) {
+      if (confirm("确认删除该场比赛？")) {
+        alert("已删除赛程，ID=" + id);
+        // TODO: 调用后端 API 删除
+      }
+    }
+  </script>
+</body>
+</html>

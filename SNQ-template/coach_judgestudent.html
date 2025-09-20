@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>教练端 - 学员评价</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f5f7fa;
+    }
+    .topbar {
+      height: 60px;
+      background: #0072ff;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+    }
+    .topbar h3 { margin: 0; }
+    .topbar button {
+      background: white;
+      color: #0072ff;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .container {
+      padding: 20px;
+      max-width: 900px;
+      margin: auto;
+    }
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    .card h4 {
+      margin: 0 0 15px;
+      color: #0072ff;
+    }
+    input, select, textarea, button {
+      padding: 8px;
+      margin: 5px 0;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+      width: 100%;
+    }
+    textarea {
+      min-height: 80px;
+      resize: vertical;
+    }
+    button {
+      background: #0072ff;
+      color: white;
+      cursor: pointer;
+      width: auto;
+    }
+    button:hover {
+      background: #005ed6;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      padding: 10px;
+      border: 1px solid #ddd;
+      text-align: center;
+      font-size: 14px;
+    }
+    th { background: #f2f2f2; }
+  </style>
+</head>
+<body>
+  <!-- 顶部栏 -->
+  <div class="topbar">
+    <h3>教练端 - 学员评价</h3>
+    <button onclick="back()">返回首页</button>
+  </div>
+
+  <!-- 主体内容 -->
+  <div class="container">
+    <!-- 填写评价 -->
+    <div class="card">
+      <h4>填写训练评价</h4>
+      <form id="evalForm" onsubmit="submitEval(event)">
+        <select id="student" required>
+          <option value="">选择学员</option>
+          <option value="stu001">张三</option>
+          <option value="stu002">李四</option>
+        </select>
+        <input type="date" id="date" required>
+        <select id="course">
+          <option value="">课程/项目</option>
+          <option value="基础训练">基础训练</option>
+          <option value="发球练习">发球练习</option>
+          <option value="对抗赛">对抗赛</option>
+        </select>
+        <textarea id="tech" placeholder="技术表现评价" required></textarea>
+        <textarea id="attitude" placeholder="出勤与态度评价" required></textarea>
+        <textarea id="summary" placeholder="综合评价与建议" required></textarea>
+        <button type="submit">提交评价</button>
+      </form>
+    </div>
+
+    <!-- 已评价记录 -->
+    <div class="card">
+      <h4>我的评价记录</h4>
+      <table>
+        <thead>
+          <tr>
+            <th>学员</th><th>日期</th><th>课程</th><th>技术表现</th><th>态度</th><th>综合评价</th>
+          </tr>
+        </thead>
+        <tbody id="evalList">
+          <tr>
+            <td>张三</td>
+            <td>2025-09-18</td>
+            <td>基础训练</td>
+            <td>步伐积极，正手攻球进步明显</td>
+            <td>出勤良好，态度认真</td>
+            <td>建议加强反手训练</td>
+          </tr>
+          <tr>
+            <td>李四</td>
+            <td>2025-09-17</td>
+            <td>发球练习</td>
+            <td>发球旋转稳定性提升</td>
+            <td>训练积极，但注意力需加强</td>
+            <td>继续保持，增加实战练习</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    function back() {
+      window.location.href = "/coach/home";
+    }
+    function submitEval(e) {
+      e.preventDefault();
+      const student = document.getElementById("student").value;
+      const date = document.getElementById("date").value;
+      const course = document.getElementById("course").value;
+      alert(`已提交评价：学员=${student}, 日期=${date}, 课程=${course}`);
+      // TODO: 调用后端 API 保存评价
+      document.getElementById("evalForm").reset();
+    }
+  </script>
+</body>
+</html>

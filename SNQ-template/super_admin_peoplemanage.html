@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>超级管理员 - 用户管理</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f5f7fa;
+    }
+    .topbar {
+      height: 60px;
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      border-bottom: 1px solid #ddd;
+    }
+    .topbar h3 {
+      margin: 0;
+      color: #333;
+    }
+    .topbar button {
+      background: #0072ff;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .topbar button:hover {
+      background: #005ed6;
+    }
+    .container {
+      padding: 20px;
+      max-width: 1200px;
+      margin: auto;
+    }
+    .tabs {
+      display: flex;
+      border-bottom: 2px solid #ddd;
+      margin-bottom: 20px;
+    }
+    .tab {
+      padding: 10px 20px;
+      cursor: pointer;
+      border-radius: 6px 6px 0 0;
+      margin-right: 8px;
+      background: #eee;
+    }
+    .tab.active {
+      background: #0072ff;
+      color: white;
+    }
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    .card h4 {
+      margin: 0 0 15px;
+      color: #0072ff;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      padding: 10px;
+      border: 1px solid #ddd;
+      text-align: center;
+      font-size: 14px;
+    }
+    th {
+      background: #f2f2f2;
+    }
+    .actions button {
+      margin: 0 4px;
+      padding: 4px 10px;
+      font-size: 13px;
+      border: none;
+      border-radius: 6px;
+      background: #0072ff;
+      color: white;
+      cursor: pointer;
+    }
+    .actions button:hover {
+      background: #005ed6;
+    }
+  </style>
+</head>
+<body>
+  <!-- 顶部栏 -->
+  <div class="topbar">
+    <h3>乒乓球培训管理系统 - 超级管理员端</h3>
+    <button onclick="back()">返回主页</button>
+  </div>
+
+  <!-- 主体内容 -->
+  <div class="container">
+    <!-- Tab 切换 -->
+    <div class="tabs">
+      <div class="tab active" onclick="showTab('students')">学员</div>
+      <div class="tab" onclick="showTab('coaches')">教练员</div>
+      <div class="tab" onclick="showTab('admins')">校区管理员</div>
+      <div class="tab" onclick="showTab('superadmins')">超级管理员</div>
+    </div>
+
+    <!-- 学员管理 -->
+    <div id="students" class="card">
+      <h4>学员管理</h4>
+      <table>
+        <thead>
+          <tr>
+            <th>用户名</th><th>姓名</th><th>校区</th><th>电话</th><th>余额</th><th>操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>stu001</td><td>张三</td><td>中心校区</td><td>13800000000</td><td>￥200</td>
+            <td class="actions">
+              <button onclick="editUser('stu001')">修改</button>
+              <button onclick="deleteUser('stu001')">删除</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 教练员管理 -->
+    <div id="coaches" class="card" style="display:none;">
+      <h4>教练员管理</h4>
+      <table>
+        <thead>
+          <tr>
+            <th>用户名</th><th>姓名</th><th>性别</th><th>校区</th><th>等级</th><th>状态</th><th>操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>coach001</td><td>王强</td><td>男</td><td>中心校区</td><td>高级</td><td>已审核</td>
+            <td class="actions">
+              <button onclick="editUser('coach001')">修改</button>
+              <button onclick="deleteUser('coach001')">删除</button>
+            </td>
+          </tr>
+          <tr>
+            <td>coach002</td><td>李华</td><td>女</td><td>分校区一</td><td>—</td><td>待审核</td>
+            <td class="actions">
+              <button onclick="approveCoach('coach002')">审核通过</button>
+              <button onclick="rejectCoach('coach002')">拒绝</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 校区管理员管理 -->
+    <div id="admins" class="card" style="display:none;">
+      <h4>校区管理员管理</h4>
+      <table>
+        <thead>
+          <tr>
+            <th>用户名</th><th>姓名</th><th>校区</th><th>电话</th><th>操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>admin01</td><td>赵六</td><td>分校区一</td><td>13911111111</td>
+            <td class="actions">
+              <button onclick="editUser('admin01')">修改</button>
+              <button onclick="deleteUser('admin01')">删除</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 超级管理员管理 -->
+    <div id="superadmins" class="card" style="display:none;">
+      <h4>超级管理员管理</h4>
+      <table>
+        <thead>
+          <tr>
+            <th>用户名</th><th>姓名</th><th>电话</th><th>邮箱</th><th>操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>root</td><td>系统管理员</td><td>13700000000</td><td>root@system.com</td>
+            <td class="actions">
+              <button onclick="editUser('root')">修改</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    function back() {
+      window.location.href = "/super_admin/home";
+    }
+    function
+  </script>

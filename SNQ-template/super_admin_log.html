@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>超级管理员 - 系统日志</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f5f7fa;
+    }
+    .topbar {
+      height: 60px;
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      border-bottom: 1px solid #ddd;
+    }
+    .topbar h3 {
+      margin: 0;
+      color: #333;
+    }
+    .topbar button {
+      background: #0072ff;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .topbar button:hover {
+      background: #005ed6;
+    }
+    .container {
+      padding: 20px;
+      max-width: 1200px;
+      margin: auto;
+    }
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    .card h4 {
+      margin: 0 0 15px;
+      color: #0072ff;
+    }
+    input, select, button {
+      padding: 8px;
+      margin: 5px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    button {
+      background: #0072ff;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #005ed6;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      padding: 10px;
+      border: 1px solid #ddd;
+      text-align: center;
+      font-size: 14px;
+    }
+    th {
+      background: #f2f2f2;
+    }
+    .actions button {
+      margin: 0 4px;
+      padding: 4px 10px;
+      font-size: 13px;
+    }
+    .log-info { color: #0072ff; }
+    .log-warning { color: orange; font-weight: bold; }
+    .log-error { color: red; font-weight: bold; }
+    .pagination {
+      margin-top: 10px;
+      text-align: center;
+    }
+    .pagination button {
+      margin: 0 5px;
+    }
+  </style>
+</head>
+<body>
+  <!-- 顶部栏 -->
+  <div class="topbar">
+    <h3>乒乓球培训管理系统 - 超级管理员端</h3>
+    <button onclick="back()">返回主页</button>
+  </div>
+
+  <!-- 主体内容 -->
+  <div class="container">
+    <!-- 查询条件 -->
+    <div class="card">
+      <h4>日志查询</h4>
+      <input type="text" id="username" placeholder="用户名">
+      <select id="role">
+        <option value="">用户角色</option>
+        <option value="student">学员</option>
+        <option value="coach">教练员</option>
+        <option value="admin">校区管理员</option>
+        <option value="super">超级管理员</option>
+      </select>
+      <select id="logType">
+        <option value="">操作类型</option>
+        <option value="login">登录</option>
+        <option value="create">新增</option>
+        <option value="update">修改</option>
+        <option value="delete">删除</option>
+        <option value="system">系统</option>
+      </select>
+      <input type="date" id="startDate"> 至
+      <input type="date" id="endDate">
+      <button onclick="searchLogs()">查询</button>
+      <button onclick="exportLogs()">导出日志</button>
+    </div>
+
+    <!-- 日志表格 -->
+    <div class="card">
+      <h4>系统日志</h4>
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th><th>用户名</th><th>角色</th><th>操作类型</th><th>详情</th><th>时间</th><th>结果</th>
+          </tr>
+        </thead>
+        <tbody id="logList">
+          <tr>
+            <td>1001</td><td>stu001</td><td>学员</td><td>登录</td>
+            <td>学员登录系统</td><td>2025-09-18 09:00</td><td class="log-info">成功</td>
+          </tr>
+          <tr>
+            <td>1002</td><td>coach01</td><td>教练员</td><td>修改</td>
+            <td>更新课程时间</td><td>2025-09-18 10:15</td><td class="log-info">成功</td>
+          </tr>
+          <tr>
+            <td>1003</td><td>admin01</td><td>校区管理员</td><td>删除</td>
+            <td>删除预约记录</td><td>2025-09-18 11:00</td><td class="log-warning">警告</td>
+          </tr>
+          <tr>
+            <td>1004</td><td>root</td><td>超级管理员</td><td>系统</td>
+            <td>系统异常重启</td><td>2025-09-18 12:00</td><td class="log-error">失败</td>
+          </tr>
+        </tbody>
+      </table>
+      <!-- 分页 -->
+      <div class="pagination">
+        <button onclick="prevPage()">上一页</button>
+        <span>第 1 页 / 共 10 页</span>
+        <button onclick="nextPage()">下一页</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function back() {
+      window.location.href = "/super_admin/home";
+    }
+    function searchLogs() {
+      const user = document.getElementById("username").value;
+      const role = document.getElementById("role").value;
+      const type = document.getElementById("logType").value;
+      const start = document.getElementById("startDate").value;
+      const end = document.getElementById("endDate").value;
+      alert(`查询日志：用户=${user}, 角色=${role}, 类型=${type}, 时间=${start} 至 ${end}`);
+      // TODO: 调用后端 API 查询并刷新 logList
+    }
+    function exportLogs() {
+      alert("导出日志成功！（模拟）");
+      // TODO: 调用后端 API 导出日志（CSV / Excel）
+    }
+    function prevPage() {
+      alert("上一页");
+      // TODO: 翻页逻辑
+    }
+    function nextPage() {
+      alert("下一页");
+      // TODO: 翻页逻辑
+    }
+  </script>
+</body>
+</html>

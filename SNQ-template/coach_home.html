@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>教练端 - 首页</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f5f7fa;
+    }
+    .topbar {
+      height: 60px;
+      background: #0072ff;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+    }
+    .topbar h3 {
+      margin: 0;
+    }
+    .topbar button {
+      background: white;
+      color: #0072ff;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .container {
+      padding: 20px;
+      max-width: 1000px;
+      margin: auto;
+    }
+    .welcome {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 20px;
+    }
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      text-align: center;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+    }
+    .card h4 {
+      margin: 10px 0;
+      color: #0072ff;
+    }
+    .card p {
+      font-size: 14px;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+  <!-- 顶部栏 -->
+  <div class="topbar">
+    <h3>乒乓球培训管理系统 - 教练端</h3>
+    <button onclick="logout()">退出登录</button>
+  </div>
+
+  <!-- 主体内容 -->
+  <div class="container">
+    <div class="welcome">
+      <h2>欢迎您，王强 教练！</h2>
+      <p>今天是 2025-09-19，您有 <b>2</b> 节课程需要确认。</p>
+    </div>
+
+    <div class="grid">
+      <div class="card" onclick="goPage('courses')">
+        <h4>📅 我的课程</h4>
+        <p>查看并确认学员的课程预约</p>
+      </div>
+      <div class="card" onclick="goPage('students')">
+        <h4>👨‍🎓 学员管理</h4>
+        <p>查看指导的学员信息与成绩</p>
+      </div>
+      <div class="card" onclick="goPage('evaluation')">
+        <h4>📝 训练评价</h4>
+        <p>填写学员训练表现与反馈</p>
+      </div>
+      <div class="card" onclick="goPage('competition')">
+        <h4>🏓 月赛管理</h4>
+        <p>查看学员报名和比赛情况</p>
+      </div>
+      <div class="card" onclick="goPage('messages')">
+        <h4>📢 系统消息</h4>
+        <p>接收管理员的系统通知</p>
+      </div>
+      <div class="card" onclick="goPage('account')">
+        <h4>💰 我的账户</h4>
+        <p>查看账户信息与余额</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function logout() {
+      alert("已退出登录");
+      window.location.href = "/login";
+    }
+    function goPage(page) {
+      alert("跳转到：" + page + " 页面");
+      // TODO: 根据 page 跳转到对应功能页面
+    }
+  </script>
+</body>
+</html>
