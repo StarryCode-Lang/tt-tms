@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>收费与退费 - 超级管理员</title>
+    <style>
+        body{margin:0;font-family:'Segoe UI',sans-serif;background:#f5f7fa;display:flex;height:100vh;}
+        .sidebar{width:220px;background:linear-gradient(180deg,#0072ff,#00c6ff);color:white;display:flex;flex-direction:column;padding:20px 0;}
+        .sidebar h2{text-align:center;margin-bottom:2rem;}
+        .sidebar a{color:white;padding:12px 20px;display:block;text-decoration:none;border-radius:6px;margin:5px 15px;transition:background .3s;}
+        .sidebar a:hover,.sidebar a.active{background:rgba(255,255,255,.2);}
+        .main-content{flex:1;padding:20px;}
+        header h1{margin:0 0 20px;color:#333;}
+        table{width:100%;border-collapse:collapse;background:white;border-radius:8px;overflow:hidden;box-shadow:0 4px 6px rgba(0,0,0,.1);}
+        th,td{padding:12px 15px;text-align:center;border-bottom:1px solid #eee;}
+        th{background:#0072ff;color:white;}
+        tr:hover td{background:#f1f5ff;}
+    </style>
+</head>
+<body>
+<div class="sidebar">
+    <h2>超级管理员</h2>
+    <a href="/super_admin/dashboard">🏠 首页</a>
+    <a href="/super_admin/campus">🏫 校区管理</a>
+    <a href="/super_admin/user">👥 用户管理</a>
+    <a href="/super_admin/appointments">📅 课程预约</a>
+    <a href="/super_admin/transactions" class="active">💰 收费与退费</a>
+    <a href="/super_admin/tournaments">🏆 月赛管理</a>
+    <a href="/super_admin/messages">📩 系统消息</a>
+    <a href="/super_admin/logs">📜 系统日志</a>
+</div>
+<div class="main-content">
+    <header><h1>收费与退费</h1></header>
+    <section>
+        <table>
+            <thead>
+                <tr><th>ID</th><th>用户</th><th>类型</th><th>金额</th><th>日期</th></tr>
+            </thead>
+            <tbody>
+                {% for t in transactions %}
+                <tr>
+                    <td>{{ t.id }}</td><td>{{ t.user }}</td><td>{{ t.type }}</td><td>{{ t.amount }}</td><td>{{ t.date }}</td>
+                    <td>
+                        <a href="{{ url_for('edit_transaction', id=t.id) }}">编辑</a> |
+                        <a href="{{ url_for('delete_transaction', id=t.id) }}" onclick="return confirm('确认删除?')">删除</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <a href="{{ url_for('add_transaction') }}">➕ 添加收费记录</a>
+    </section>
+</div>
+</body>
+</html>

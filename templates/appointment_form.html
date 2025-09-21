@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ '编辑课程预约' if appointment else '添加课程预约' }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; background:#f5f7fa; padding:40px; }
+        .form-container { background:white; padding:20px; border-radius:8px; width:400px; margin:auto; box-shadow:0 4px 6px rgba(0,0,0,0.1); }
+        h2 { margin-top:0; color:#0072ff; }
+        label { display:block; margin-top:10px; color:#333; }
+        input, select { width:100%; padding:8px; margin-top:5px; border:1px solid #ddd; border-radius:5px; }
+        button { margin-top:15px; background:#0072ff; color:white; border:none; padding:10px; width:100%; border-radius:5px; cursor:pointer; }
+        button:hover { background:#005ed6; }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h2>{{ '编辑课程预约' if appointment else '添加课程预约' }}</h2>
+        <form method="post">
+            <label>学员</label>
+            <select name="student_id">
+                {% for s in students %}
+                <option value="{{ s.id }}" {% if appointment and appointment.student_id == s.id %}selected{% endif %}>{{ s.real_name }}</option>
+                {% endfor %}
+            </select>
+
+            <label>教练</label>
+            <select name="coach_id">
+                {% for c in coaches %}
+                <option value="{{ c.id }}" {% if appointment and appointment.coach_id == c.id %}selected{% endif %}>{{ c.real_name }}</option>
+                {% endfor %}
+            </select>
+
+            <label>开始时间</label>
+            <input type="datetime-local" name="start_time" value="{{ appointment.start_time if appointment else '' }}" required>
+
+            <label>结束时间</label>
+            <input type="datetime-local" name="end_time" value="{{ appointment.end_time if appointment else '' }}" required>
+
+            <label>状态</label>
+            <select name="status">
+                <option value="confirmed" {% if appointment and appointment.status == '已预约' %}selected{% endif %}>已预约</option>
+                <option value="cancelled" {% if appointment and appointment.status == '已取消' %}selected{% endif %}>已取消</option>
+            </select>
+
+            <button type="submit">提交</button>
+        </form>
+    </div>
+</body>
+</html>

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ '编辑收费记录' if transaction else '添加收费记录' }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; background:#f5f7fa; padding:40px; }
+        .form-container { background:white; padding:20px; border-radius:8px; width:400px; margin:auto; box-shadow:0 4px 6px rgba(0,0,0,0.1); }
+        h2 { margin-top:0; color:#0072ff; }
+        label { display:block; margin-top:10px; color:#333; }
+        input, select { width:100%; padding:8px; margin-top:5px; border:1px solid #ddd; border-radius:5px; }
+        button { margin-top:15px; background:#0072ff; color:white; border:none; padding:10px; width:100%; border-radius:5px; cursor:pointer; }
+        button:hover { background:#005ed6; }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h2>{{ '编辑收费记录' if transaction else '添加收费记录' }}</h2>
+        <form method="post">
+            <label>用户</label>
+            <select name="user_id">
+                {% for u in users %}
+                <option value="{{ u.id }}" {% if transaction and transaction.user_id == u.id %}selected{% endif %}>{{ u.real_name }}</option>
+                {% endfor %}
+            </select>
+
+            <label>类型</label>
+            <select name="type">
+                <option value="deposit" {% if transaction and transaction.type == '充值' %}selected{% endif %}>充值</option>
+                <option value="appointment_fee" {% if transaction and transaction.type == '扣费' %}selected{% endif %}>扣费</option>
+                <option value="refund" {% if transaction and transaction.type == '退费' %}selected{% endif %}>退费</option>
+            </select>
+
+            <label>金额</label>
+            <input type="number" name="amount" value="{{ transaction.amount if transaction else '' }}" required>
+
+            <button type="submit">提交</button>
+        </form>
+    </div>
+</body>
+</html>

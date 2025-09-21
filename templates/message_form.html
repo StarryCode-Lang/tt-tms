@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ '编辑消息' if message else '添加消息' }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; background:#f5f7fa; padding:40px; }
+        .form-container { background:white; padding:20px; border-radius:8px; width:400px; margin:auto; box-shadow:0 4px 6px rgba(0,0,0,0.1); }
+        h2 { margin-top:0; color:#0072ff; }
+        label { display:block; margin-top:10px; color:#333; }
+        textarea, select { width:100%; padding:8px; margin-top:5px; border:1px solid #ddd; border-radius:5px; }
+        button { margin-top:15px; background:#0072ff; color:white; border:none; padding:10px; width:100%; border-radius:5px; cursor:pointer; }
+        button:hover { background:#005ed6; }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h2>{{ '编辑消息' if message else '添加消息' }}</h2>
+        <form method="post">
+            <label>内容</label>
+            <textarea name="content" required>{{ message.content if message else '' }}</textarea>
+
+            <label>接收人</label>
+            <select name="receiver_id">
+                {% for u in users %}
+                <option value="{{ u.id }}" {% if message and message.receiver_id == u.id %}selected{% endif %}>{{ u.real_name }}</option>
+                {% endfor %}
+            </select>
+
+            <button type="submit">提交</button>
+        </form>
+    </div>
+</body>
+</html>

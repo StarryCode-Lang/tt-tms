@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session
 import pymysql
+import datetime
 from werkzeug.security import check_password_hash
 
 app = Flask(__name__)
@@ -236,6 +237,431 @@ def delete_user(id):
     conn.commit()
     conn.close()
     return redirect(url_for("user_management"))
+
+
+
+# ---------- 课程预约 ----------
+@app.route("/super_admin/appointments")
+def appointments():
+    if "role" not in session or session["role"] != "super_admin":
+        return redirect(url_for("login_page"))
+
+    conn = get_db_connection()
+    try:
+        with conn.cursor(pymysql.cursors.DictCursor) as cursor:
+            sql = """
+                SELECT a.id,
+                       u_student.real_name AS student,
+                       u_coach.real_name AS instructor,
+                       a.start_time,
+                       a.end_time,
+                       a.status
+                FROM appointments a
+                LEFT JOIN users u_student ON a.student_id = u_student.id
+                LEFT JOIN users u_coach ON a.coach_id = u_coach.id
+                ORDER BY a.start_time DESC
+            """
+            cursor.execute(sql)
+            rows = cursor.fetchall()
+
+        # 格式化为模板需要的字段： id, student, instructor, time, status
+        appointments = []
+        for r in rows:
+            st = r.get('start_time')
+            et = r.get('end_time')
+            if isinstance(st, datetime.datetime):
+                st_str = st.strftime('%Y-%m-%d %H:%M')
+            else:
+                st_str = str(st) if st is not None else ''
+            if isinstance(et, datetime.datetime):
+                et_str = et.strftime('%Y-%m-%d %H:%M')
+            else:
+                et_str = str(et) if et is not None else ''
+            appointments.append({
+                "id": r.get("id"),
+                "student": r.get("student") or "—",
+                "instructor": r.get("instructor") or "—",
+                "time": f"{st_str} - {et_str}",
+                "status": r.get("status") or "—"
+            })
+        return render_template("appointments.html", appointments=appointments)
+    finally:
+        conn.close()
+
+# ---------- 收费与退费 ----------
+@app.route("/super_admin/transactions")
+def transactions():
+    if "role" not in session or session["role"] != "super_admin":
+        return redirect(url_for("login_page"))
+
+    conn = get_db_connection()
+    try:
+        with conn.cursor(pymysql.cursors.DictCursor) as cursor:
+            # 注意 transactions 表中时间列是 `timestamp`
+            sql = """
+                SELECT t.id,
+                       u.real_name AS user,
+                       t.type,
+                       t.amount,
+                       t.timestamp AS ts
+                FROM transactions t
+                LEFT JOIN users u ON t.user_id = u.id
+                ORDER BY t.timestamp DESC
+            """
+            cursor.execute(sql)
+            rows = cursor.fetchall()
+
+        transactions = []
+        for r in rows:
+            ts = r.get('ts')
+            if isinstance(ts, datetime.datetime):
+                date_str = ts.strftime('%Y-%m-%d %H:%M')
+            else:
+                date_str = str(ts) if ts is not None else ''
+            transactions.append({
+                "id": r.get("id"),
+                "user": r.get("user") or "—",
+                "type": r.get("type"),
+                "amount": r.get("amount"),
+                "date": date_str
+            })
+        return render_template("transactions.html", transactions=transactions)
+    finally:
+        conn.close()
+
+# ---------- 月赛管理 ----------
+@app.route("/super_admin/tournaments")
+def tournaments():
+    if "role" not in session or session["role"] != "super_admin":
+        return redirect(url_for("login_page"))
+
+    conn = get_db_connection()
+    try:
+        with conn.cursor(pymysql.cursors.DictCursor) as cursor:
+            # monthly_tournaments + match_registrations 汇总参赛人数
+            sql = """
+                SELECT mt.id, mt.year, mt.month, mt.date,
+                       COUNT(mr.id) AS participants
+                FROM monthly_tournaments mt
+                LEFT JOIN match_registrations mr ON mt.id = mr.tournament_id
+                GROUP BY mt.id, mt.year, mt.month, mt.date
+                ORDER BY mt.year DESC, mt.month DESC
+            """
+            cursor.execute(sql)
+            rows = cursor.fetchall()
+
+        tournaments = []
+        for r in rows:
+            # 构造可读的赛事名称，例如：2025年9月月赛
+            name = f"{r.get('year')}年{r.get('month')}月月赛"
+            date_val = r.get('date')
+            if isinstance(date_val, datetime.date):
+                date_str = date_val.strftime('%Y-%m-%d')
+            else:
+                date_str = str(date_val) if date_val is not None else ''
+            tournaments.append({
+                "id": r.get("id"),
+                "name": name,
+                "date": date_str,
+                "participants": r.get("participants", 0)
+            })
+        return render_template("tournaments.html", tournaments=tournaments)
+    finally:
+        conn.close()
+
+# ---------- 系统消息 ----------
+@app.route("/super_admin/messages")
+def messages():
+    if "role" not in session or session["role"] != "super_admin":
+        return redirect(url_for("login_page"))
+
+    conn = get_db_connection()
+    try:
+        with conn.cursor(pymysql.cursors.DictCursor) as cursor:
+            sql = """
+                SELECT m.id, m.content, m.receiver_id, u.real_name AS receiver, m.created_at
+                FROM messages m
+                LEFT JOIN users u ON m.receiver_id = u.id
+                ORDER BY m.created_at DESC
+            """
+            cursor.execute(sql)
+            rows = cursor.fetchall()
+
+        messages = []
+        for r in rows:
+            created = r.get('created_at')
+            if isinstance(created, datetime.datetime):
+                date_str = created.strftime('%Y-%m-%d %H:%M')
+            else:
+                date_str = str(created) if created is not None else ''
+            messages.append({
+                "id": r.get("id"),
+                "content": r.get("content"),
+                "receiver": r.get("receiver") or ("用户ID " + str(r.get("receiver_id")) if r.get("receiver_id") else "系统"),
+                "date": date_str
+            })
+        return render_template("messages.html", messages=messages)
+    finally:
+        conn.close()
+
+# ---------- 系统日志 ----------
+@app.route("/super_admin/logs")
+def logs():
+    if "role" not in session or session["role"] != "super_admin":
+        return redirect(url_for("login_page"))
+
+    conn = get_db_connection()
+    try:
+        with conn.cursor(pymysql.cursors.DictCursor) as cursor:
+            sql = """
+                SELECT l.id, l.user_id, u.real_name AS user, l.action, l.details, l.timestamp
+                FROM logs l
+                LEFT JOIN users u ON l.user_id = u.id
+                ORDER BY l.timestamp DESC
+            """
+            cursor.execute(sql)
+            rows = cursor.fetchall()
+
+        logs = []
+        for r in rows:
+            ts = r.get('timestamp')
+            if isinstance(ts, datetime.datetime):
+                time_str = ts.strftime('%Y-%m-%d %H:%M')
+            else:
+                time_str = str(ts) if ts is not None else ''
+            logs.append({
+                "id": r.get("id"),
+                "user": r.get("user") or ("用户ID " + str(r.get("user_id")) if r.get("user_id") else "系统"),
+                "action": r.get("action"),
+                "time": time_str
+            })
+        return render_template("logs.html", logs=logs)
+    finally:
+        conn.close()
+
+
+# ========== 课程预约 CRUD ==========
+@app.route("/super_admin/appointment/add", methods=["GET", "POST"])
+def add_appointment():
+    conn = get_db_connection()
+    with conn.cursor(pymysql.cursors.DictCursor) as cursor:
+        cursor.execute("SELECT id, real_name FROM users WHERE role='student'")
+        students = cursor.fetchall()
+        cursor.execute("SELECT id, real_name FROM users WHERE role='coach'")
+        coaches = cursor.fetchall()
+
+    if request.method == "POST":
+        data = request.form
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                INSERT INTO appointments (student_id, coach_id, start_time, end_time, status)
+                VALUES (%s, %s, %s, %s, %s)
+            """, (data["student_id"], data["coach_id"], data["start_time"], data["end_time"], data["status"]))
+        conn.commit()
+        conn.close()
+        return redirect(url_for("appointments"))
+
+    conn.close()
+    return render_template("appointment_form.html", appointment=None, students=students, coaches=coaches)
+
+@app.route("/super_admin/appointment/delete/<int:id>")
+def delete_appointment(id):
+    conn = get_db_connection()
+    with conn.cursor() as cursor:
+        cursor.execute("DELETE FROM appointments WHERE id=%s", (id,))
+    conn.commit()
+    conn.close()
+    return redirect(url_for("appointments"))
+
+# ========== 收费记录 CRUD ==========
+@app.route("/super_admin/transaction/add", methods=["GET", "POST"])
+def add_transaction():
+    conn = get_db_connection()
+    with conn.cursor(pymysql.cursors.DictCursor) as cursor:
+        cursor.execute("SELECT id, real_name FROM users")
+        users = cursor.fetchall()
+
+    if request.method == "POST":
+        data = request.form
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                INSERT INTO transactions (user_id, type, amount, timestamp)
+                VALUES (%s, %s, %s, NOW())
+            """, (data["user_id"], data["type"], data["amount"]))
+        conn.commit()
+        conn.close()
+        return redirect(url_for("transactions"))
+
+    conn.close()
+    return render_template("transaction_form.html", transaction=None, users=users)
+
+@app.route("/super_admin/transaction/delete/<int:id>")
+def delete_transaction(id):
+    conn = get_db_connection()
+    with conn.cursor() as cursor:
+        cursor.execute("DELETE FROM transactions WHERE id=%s", (id,))
+    conn.commit()
+    conn.close()
+    return redirect(url_for("transactions"))
+
+# ========== 月赛 CRUD ==========
+@app.route("/super_admin/tournament/add", methods=["GET", "POST"])
+def add_tournament():
+    if request.method == "POST":
+        data = request.form
+        conn = get_db_connection()
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                INSERT INTO monthly_tournaments (year, month, date)
+                VALUES (%s, %s, %s)
+            """, (data["year"], data["month"], data["date"]))
+        conn.commit()
+        conn.close()
+        return redirect(url_for("tournaments"))
+    return render_template("tournament_form.html", tournament=None)
+
+@app.route("/super_admin/tournament/delete/<int:id>")
+def delete_tournament(id):
+    conn = get_db_connection()
+    with conn.cursor() as cursor:
+        cursor.execute("DELETE FROM monthly_tournaments WHERE id=%s", (id,))
+    conn.commit()
+    conn.close()
+    return redirect(url_for("tournaments"))
+
+# ========== 系统消息 CRUD ==========
+@app.route("/super_admin/message/add", methods=["GET", "POST"])
+def add_message():
+    conn = get_db_connection()
+    with conn.cursor(pymysql.cursors.DictCursor) as cursor:
+        cursor.execute("SELECT id, real_name FROM users")
+        users = cursor.fetchall()
+
+    if request.method == "POST":
+        data = request.form
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                INSERT INTO messages (content, receiver_id, created_at)
+                VALUES (%s, %s, NOW())
+            """, (data["content"], data["receiver_id"]))
+        conn.commit()
+        conn.close()
+        return redirect(url_for("messages"))
+
+    conn.close()
+    return render_template("message_form.html", message=None, users=users)
+
+@app.route("/super_admin/message/delete/<int:id>")
+def delete_message(id):
+    conn = get_db_connection()
+    with conn.cursor() as cursor:
+        cursor.execute("DELETE FROM messages WHERE id=%s", (id,))
+    conn.commit()
+    conn.close()
+    return redirect(url_for("messages"))
+
+
+@app.route("/super_admin/appointment/edit/<int:id>", methods=["GET", "POST"])
+def edit_appointment(id):
+    conn = get_db_connection()
+    with conn.cursor(pymysql.cursors.DictCursor) as cursor:
+        cursor.execute("SELECT id, real_name FROM users WHERE role='student'")
+        students = cursor.fetchall()
+        cursor.execute("SELECT id, real_name FROM users WHERE role='coach'")
+        coaches = cursor.fetchall()
+        cursor.execute("SELECT * FROM appointments WHERE id=%s", (id,))
+        appointment = cursor.fetchone()
+
+    if request.method == "POST":
+        data = request.form
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                UPDATE appointments
+                SET student_id=%s, coach_id=%s, start_time=%s, end_time=%s, status=%s
+                WHERE id=%s
+            """, (data["student_id"], data["coach_id"], data["start_time"], data["end_time"], data["status"], id))
+        conn.commit()
+        conn.close()
+        return redirect(url_for("appointments"))
+
+    conn.close()
+    return render_template("appointment_form.html", appointment=appointment, students=students, coaches=coaches)
+
+
+@app.route("/super_admin/transaction/edit/<int:id>", methods=["GET", "POST"])
+def edit_transaction(id):
+    conn = get_db_connection()
+    with conn.cursor(pymysql.cursors.DictCursor) as cursor:
+        cursor.execute("SELECT id, real_name FROM users")
+        users = cursor.fetchall()
+        cursor.execute("SELECT * FROM transactions WHERE id=%s", (id,))
+        transaction = cursor.fetchone()
+
+    if request.method == "POST":
+        data = request.form
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                UPDATE transactions
+                SET user_id=%s, type=%s, amount=%s
+                WHERE id=%s
+            """, (data["user_id"], data["type"], data["amount"], id))
+        conn.commit()
+        conn.close()
+        return redirect(url_for("transactions"))
+
+    conn.close()
+    return render_template("transaction_form.html", transaction=transaction, users=users)
+
+
+@app.route("/super_admin/tournament/edit/<int:id>", methods=["GET", "POST"])
+def edit_tournament(id):
+    conn = get_db_connection()
+    with conn.cursor(pymysql.cursors.DictCursor) as cursor:
+        cursor.execute("SELECT * FROM monthly_tournaments WHERE id=%s", (id,))
+        tournament = cursor.fetchone()
+
+    if request.method == "POST":
+        data = request.form
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                UPDATE monthly_tournaments
+                SET year=%s, month=%s, date=%s
+                WHERE id=%s
+            """, (data["year"], data["month"], data["date"], id))
+        conn.commit()
+        conn.close()
+        return redirect(url_for("tournaments"))
+
+    conn.close()
+    return render_template("tournament_form.html", tournament=tournament)
+
+
+@app.route("/super_admin/message/edit/<int:id>", methods=["GET", "POST"])
+def edit_message(id):
+    conn = get_db_connection()
+    with conn.cursor(pymysql.cursors.DictCursor) as cursor:
+        cursor.execute("SELECT id, real_name FROM users")
+        users = cursor.fetchall()
+        cursor.execute("SELECT * FROM messages WHERE id=%s", (id,))
+        message = cursor.fetchone()
+
+    if request.method == "POST":
+        data = request.form
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                UPDATE messages
+                SET content=%s, receiver_id=%s
+                WHERE id=%s
+            """, (data["content"], data["receiver_id"], id))
+        conn.commit()
+        conn.close()
+        return redirect(url_for("messages"))
+
+    conn.close()
+    return render_template("message_form.html", message=message, users=users)
+
+
+
 
 
 # ---------------------
