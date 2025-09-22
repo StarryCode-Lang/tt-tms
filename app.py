@@ -19,6 +19,20 @@ db_config = {
 def get_db_connection():
     return pymysql.connect(**db_config)
 
+# 日志记录函数
+def log_action(action, details=None):
+    user_id = session.get('user_id')
+    if user_id is None:
+        return  # 如果没有用户 ID，不记录日志
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cursor:
+            sql = "INSERT INTO logs (user_id, action, details, timestamp) VALUES (%s, %s, %s, NOW())"
+            cursor.execute(sql, (user_id, action, details))
+        conn.commit()
+    finally:
+        conn.close()
+
 # ---------------------
 # 登录页面
 # ---------------------
@@ -48,6 +62,7 @@ def login_action():
             if user["password"] == password:
                 session["user_id"] = user["id"]
                 session["role"] = user["role"]
+                log_action("Logged in", f"Username: {username}, Role: {role}")
 
                 if role == "super_admin":
                     return jsonify({"success": True, "redirect": url_for("super_admin_dashboard")})
@@ -95,7 +110,10 @@ def campus_admin_dashboard():
 # ---------------------
 @app.route("/logout")
 def logout():
+    user_id = session.get('user_id')  # 在清除 session 前获取 user_id
     session.clear()
+    if user_id:
+        log_action("Logged out", f"User ID: {user_id}")
     return redirect(url_for("login_page"))
 
 
@@ -155,6 +173,7 @@ def add_campus():
             """, (data["name"], data["address"], data["contact_person"], data["phone"], data["email"], data["is_center"]))
         conn.commit()
         conn.close()
+        log_action("Added campus", f"Name: {data['name']}, Address: {data['address']}")
         return redirect(url_for("campus_management"))
     return render_template("campus_form.html", campus=None)
 
@@ -170,6 +189,7 @@ def edit_campus(id):
             """, (data["name"], data["address"], data["contact_person"], data["phone"], data["email"], data["is_center"], id))
             conn.commit()
             conn.close()
+            log_action("Edited campus", f"ID: {id}, Name: {data['name']}")
             return redirect(url_for("campus_management"))
         cursor.execute("SELECT * FROM campuses WHERE id=%s", (id,))
         campus = cursor.fetchone()
@@ -183,6 +203,7 @@ def delete_campus(id):
         cursor.execute("DELETE FROM campuses WHERE id=%s", (id,))
     conn.commit()
     conn.close()
+    log_action("Deleted campus", f"ID: {id}")
     return redirect(url_for("campus_management"))
 
 
@@ -203,6 +224,7 @@ def add_user():
             """, (data["username"], data["real_name"], data["gender"], data["age"], data["phone"], data["email"], data["role"], data["campus_id"], data["password"]))
         conn.commit()
         conn.close()
+        log_action("Added user", f"Username: {data['username']}, Role: {data['role']}")
         return redirect(url_for("user_management"))
 
     conn.close()
@@ -222,6 +244,7 @@ def edit_user(id):
             """, (data["username"], data["real_name"], data["gender"], data["age"], data["phone"], data["email"], data["role"], data["campus_id"], data["password"], id))
             conn.commit()
             conn.close()
+            log_action("Edited user", f"ID: {id}, Username: {data['username']}")
             return redirect(url_for("user_management"))
 
         cursor.execute("SELECT * FROM users WHERE id=%s", (id,))
@@ -236,6 +259,7 @@ def delete_user(id):
         cursor.execute("DELETE FROM users WHERE id=%s", (id,))
     conn.commit()
     conn.close()
+    log_action("Deleted user", f"ID: {id}")
     return redirect(url_for("user_management"))
 
 
@@ -459,6 +483,7 @@ def add_appointment():
             """, (data["student_id"], data["coach_id"], data["start_time"], data["end_time"], data["status"]))
         conn.commit()
         conn.close()
+        log_action("Added appointment", f"Student ID: {data['student_id']}, Coach ID: {data['coach_id']}, Start Time: {data['start_time']}")
         return redirect(url_for("appointments"))
 
     conn.close()
@@ -471,6 +496,7 @@ def delete_appointment(id):
         cursor.execute("DELETE FROM appointments WHERE id=%s", (id,))
     conn.commit()
     conn.close()
+    log_action("Deleted appointment", f"ID: {id}")
     return redirect(url_for("appointments"))
 
 # ========== 收费记录 CRUD ==========
@@ -488,8 +514,18 @@ def add_transaction():
                 INSERT INTO transactions (user_id, type, amount, timestamp)
                 VALUES (%s, %s, %s, NOW())
             """, (data["user_id"], data["type"], data["amount"]))
+
+            if data["type"]=="refund":
+                cursor.execute("""update users set balance=balance+%s where id=%s""", (data["amount"], data["user_id"]))
+            elif data["type"]=="deposit":
+                cursor.execute("""update users set balance=balance+%s where id=%s""", (data["amount"], data["user_id"]))
+            elif data["type"]=="appointment_fee":
+                cursor.execute("""update users set balance=balance-%s where id=%s""", (data["amount"], data["user_id"]))
+            else:
+                cursor.execute("""update users set balance=balance-%s where id=%s""", (data["amount"], data["user_id"]))
         conn.commit()
         conn.close()
+        log_action("Added transaction", f"User ID: {data['user_id']}, Type: {data['type']}, Amount: {data['amount']}")
         return redirect(url_for("transactions"))
 
     conn.close()
@@ -502,6 +538,7 @@ def delete_transaction(id):
         cursor.execute("DELETE FROM transactions WHERE id=%s", (id,))
     conn.commit()
     conn.close()
+    log_action("Deleted transaction", f"ID: {id}")
     return redirect(url_for("transactions"))
 
 # ========== 月赛 CRUD ==========
@@ -517,6 +554,7 @@ def add_tournament():
             """, (data["year"], data["month"], data["date"]))
         conn.commit()
         conn.close()
+        log_action("Added tournament", f"Year: {data['year']}, Month: {data['month']}, Date: {data['date']}")
         return redirect(url_for("tournaments"))
     return render_template("tournament_form.html", tournament=None)
 
@@ -527,6 +565,7 @@ def delete_tournament(id):
         cursor.execute("DELETE FROM monthly_tournaments WHERE id=%s", (id,))
     conn.commit()
     conn.close()
+    log_action("Deleted tournament", f"ID: {id}")
     return redirect(url_for("tournaments"))
 
 # ========== 系统消息 CRUD ==========
@@ -546,6 +585,7 @@ def add_message():
             """, (data["content"], data["receiver_id"]))
         conn.commit()
         conn.close()
+        log_action("Added message", f"Receiver ID: {data['receiver_id']}, Content: {data['content'][:50]}...")  # 截取内容以避免过长
         return redirect(url_for("messages"))
 
     conn.close()
@@ -558,6 +598,7 @@ def delete_message(id):
         cursor.execute("DELETE FROM messages WHERE id=%s", (id,))
     conn.commit()
     conn.close()
+    log_action("Deleted message", f"ID: {id}")
     return redirect(url_for("messages"))
 
 
@@ -582,6 +623,7 @@ def edit_appointment(id):
             """, (data["student_id"], data["coach_id"], data["start_time"], data["end_time"], data["status"], id))
         conn.commit()
         conn.close()
+        log_action("Edited appointment", f"ID: {id}, Student ID: {data['student_id']}, Coach ID: {data['coach_id']}")
         return redirect(url_for("appointments"))
 
     conn.close()
@@ -607,6 +649,7 @@ def edit_transaction(id):
             """, (data["user_id"], data["type"], data["amount"], id))
         conn.commit()
         conn.close()
+        log_action("Edited transaction", f"ID: {id}, User ID: {data['user_id']}, Type: {data['type']}")
         return redirect(url_for("transactions"))
 
     conn.close()
@@ -630,6 +673,7 @@ def edit_tournament(id):
             """, (data["year"], data["month"], data["date"], id))
         conn.commit()
         conn.close()
+        log_action("Edited tournament", f"ID: {id}, Year: {data['year']}, Month: {data['month']}")
         return redirect(url_for("tournaments"))
 
     conn.close()
@@ -655,6 +699,7 @@ def edit_message(id):
             """, (data["content"], data["receiver_id"], id))
         conn.commit()
         conn.close()
+        log_action("Edited message", f"ID: {id}, Receiver ID: {data['receiver_id']}")
         return redirect(url_for("messages"))
 
     conn.close()
