@@ -25,8 +25,8 @@
 
             <label>性别</label>
             <select name="gender">
-                <option value="男" {% if user and user.gender == '男' %}selected{% endif %}>男</option>
-                <option value="女" {% if user and user.gender == '女' %}selected{% endif %}>女</option>
+                <option value="male" {% if user and user.gender == '男' %}selected{% endif %}>男</option>
+                <option value="female" {% if user and user.gender == '女' %}selected{% endif %}>女</option>
             </select>
 
             <label>年龄</label>
@@ -41,8 +41,8 @@
             <label>角色</label>
             <select name="role">
                 <option value="student" {% if user and user.role == 'student' %}selected{% endif %}>学生</option>
-                <option value="instructor" {% if user and user.role == 'instructor' %}selected{% endif %}>教师</option>
-                <option value="admin" {% if user and user.role == 'admin' %}selected{% endif %}>管理员</option>
+                <option value="coach" {% if user and user.role == 'coach' %}selected{% endif %}>教师</option>
+                <option value="campus_admin" {% if user and user.role == 'campus_admin' %}selected{% endif %}>管理员</option>
                 <option value="super_admin" {% if user and user.role == 'super_admin' %}selected{% endif %}>超级管理员</option>
             </select>
 

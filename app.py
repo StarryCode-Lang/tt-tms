@@ -219,9 +219,11 @@ def add_user():
         data = request.form
         with conn.cursor() as cursor:
             cursor.execute("""
-                INSERT INTO users (username, real_name, gender, age, phone, email, role, campus_id, password)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-            """, (data["username"], data["real_name"], data["gender"], data["age"], data["phone"], data["email"], data["role"], data["campus_id"], data["password"]))
+                INSERT INTO users (username, real_name, gender, age, phone, email, role, coach_level, campus_id, password)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """, (data["username"], data["real_name"], data["gender"], data["age"], data["phone"], data["email"], data["role"], "junior", data["campus_id"], data["password"]))
+            if data["role"]!="coach":
+                cursor.execute("""update users set coach_level=NULL where username= %s""", (data["username"],))
         conn.commit()
         conn.close()
         log_action("Added user", f"Username: {data['username']}, Role: {data['role']}")
@@ -276,7 +278,7 @@ def appointments():
             sql = """
                 SELECT a.id,
                        u_student.real_name AS student,
-                       u_coach.real_name AS instructor,
+                       u_coach.real_name AS coach,
                        a.start_time,
                        a.end_time,
                        a.status
@@ -304,7 +306,7 @@ def appointments():
             appointments.append({
                 "id": r.get("id"),
                 "student": r.get("student") or "—",
-                "instructor": r.get("instructor") or "—",
+                "coach": r.get("coach") or "—",
                 "time": f"{st_str} - {et_str}",
                 "status": r.get("status") or "—"
             })
