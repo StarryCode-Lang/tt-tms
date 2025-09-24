@@ -10,9 +10,10 @@ app.secret_key = "your_secret_key"  # 用于 session 管理
 db_config = {
     "host": "localhost",
     "user": "root",
-    "password": "mysqladmin",
+    "password": "root",
     "database": "ttms_db",
-    "cursorclass": pymysql.cursors.DictCursor
+    "cursorclass": pymysql.cursors.DictCursor,
+    "autocommit": True
 }
 
 # 获取数据库连接
@@ -39,6 +40,8 @@ def log_action(action, details=None):
 @app.route("/")
 def login_page():
     return render_template("login.html")
+
+
 
 # ---------------------
 # 登录逻辑
@@ -78,6 +81,58 @@ def login_action():
             return jsonify({"success": False, "message": "用户不存在"})
     finally:
         conn.close()
+
+
+
+@app.route("/register", methods=["POST"])
+def register_action():
+    data = request.get_json()
+    username = data.get("username")
+    password = data.get("password")
+    real_name = data.get("real_name")
+    gender = data.get("gender")
+    age = data.get("age")
+    phone = data.get("phone")
+    email = data.get("email")
+    role = data.get("role")
+    coach_level = data.get("coach_level")
+    achievements = data.get("achievements")
+
+    # 检查角色是否允许注册（只允许student和coach）
+    if role not in ['student', 'coach']:
+        return jsonify({"success": False, "message": "该用户类型不允许注册"})
+
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cursor:
+            # 检查用户名是否已存在
+            cursor.execute("SELECT id FROM users WHERE username=%s", (username,))
+            if cursor.fetchone():
+                return jsonify({"success": False, "message": "用户名已存在"})
+
+            # 插入新用户（is_approved设为1直接通过审核，campus_id设为NULL）
+            sql = """INSERT INTO users (username, password, real_name, gender, age, phone, email, 
+                     role, coach_level, achievements, is_approved, campus_id, balance) 
+                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
+            cursor.execute(sql, (
+                username, password, real_name, gender, age, phone, email,
+                role, coach_level, achievements, 1, None, 0.00  # is_approved=1 直接通过
+            ))
+
+            # 记录日志（如果有日志表）
+            try:
+                cursor.execute("INSERT INTO logs (user_id, action, timestamp) VALUES (%s, %s, %s)",
+                               (cursor.lastrowid, f"用户注册: {username} ({role})", datetime.datetime.now()))
+            except:
+                pass  # 忽略日志错误
+
+            return jsonify({"success": True, "message": "注册成功！可以立即登录"})
+    except Exception as e:
+        return jsonify({"success": False, "message": f"注册失败: {str(e)}"})
+    finally:
+        conn.close()
+
+
 
 # ---------------------
 # 超级管理员后台首页

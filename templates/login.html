@@ -1,138 +1,262 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>登录 - 乒乓球培训管理系统</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: linear-gradient(135deg, #00c6ff, #0072ff);
-            height: 100vh;
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        .login-container {
-            background: white;
-            padding: 2rem;
-            border-radius: 12px;
-            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
-            width: 100%;
-            max-width: 400px;
-        }
-        h2 {
-            text-align: center;
-            color: #333;
-            margin-bottom: 1.5rem;
-        }
-        .form-group {
-            margin-bottom: 1rem;
-        }
-        label {
-            display: block;
-            margin-bottom: 0.5rem;
-            color: #555;
-        }
-        select, input[type="text"], input[type="password"] {
-            width: 100%;
-            padding: 0.8rem;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            box-sizing: border-box;
-            font-size: 1rem;
-        }
-        button {
-            width: 100%;
-            padding: 0.8rem;
-            background: #0072ff;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 1rem;
-            transition: background 0.3s;
-        }
-        button:hover {
-            background: #005ed6;
-        }
-        #error-message {
-            color: red;
-            text-align: center;
-            margin-top: 1rem;
-            display: none;
-        }
-    </style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>登录 - 乒乓球培训管理系统</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css"/>
+<style>
+:root{--primary:#0072ff;--muted:#666;--success:#28a745}
+body{font-family:Inter,Arial,Helvetica,sans-serif;height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#e0f7ff,#e1ecff);margin:0}
+.card{width:420px;background:#fff;border-radius:12px;box-shadow:0 12px 30px rgba(20,40,80,0.12);padding:28px}
+h1{text-align:center;margin:0 0 18px;color:var(--primary)}
+.form-group{margin-bottom:12px}
+label{display:block;margin-bottom:6px;color:var(--muted);font-size:14px}
+input,select{width:100%;padding:10px;border:1px solid #e6eefc;border-radius:8px;font-size:14px;box-sizing:border-box}
+button{width:100%;padding:12px;border-radius:10px;border:none;font-weight:600;cursor:pointer;margin-top:8px}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-secondary{background:#6c757d;color:#fff}
+.btn-success{background:var(--success);color:#fff}
+.note{font-size:13px;color:#999;margin-top:8px;text-align:center}
+#error{color:#d9534f;text-align:center;margin-top:8px;display:none}
+#success{color:#28a745;text-align:center;margin-top:8px;display:none}
+.toggle-form{text-align:center;margin-top:16px}
+.toggle-link{color:var(--primary);cursor:pointer;text-decoration:underline}
+.toggle-link:hover{text-decoration:none}
+</style>
 </head>
 <body>
-    <div class="login-container">
-        <h2>系统登录</h2>
-        <form id="login-form">
-            <div class="form-group">
-                <label for="role">用户类型</label>
-                <select id="role" name="role" required>
-                    <option value="student">学员</option>
-                    <option value="coach">教练</option>
-                    <option value="campus_admin">校区管理员</option>
-                    <option value="super_admin">超级管理员</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="username">用户名</label>
-                <input type="text" id="username" name="username" required>
-            </div>
-            <div class="form-group">
-                <label for="password">密码</label>
-                <input type="password" id="password" name="password" required>
-            </div>
-            <button type="submit">登录</button>
-            <div id="error-message"></div>
-        </form>
+<div class="card">
+  <h1 id="form-title">系统登录</h1>
+  <form id="loginForm">
+    <div class="form-group">
+      <label for="role">用户类型</label>
+      <select id="role" required>
+        <option value="student">学员</option>
+        <option value="coach">教练</option>
+        <option value="campus_admin">校区管理员</option>
+        <option value="super_admin">超级管理员</option>
+      </select>
     </div>
+    <div class="form-group">
+      <label for="username">用户名</label>
+      <input id="username" required autocomplete="username"/>
+    </div>
+    <div class="form-group">
+      <label for="password">密码</label>
+      <input id="password" type="password" required autocomplete="current-password"/>
+    </div>
+    <button type="submit" class="btn-primary">登录</button>
+    <div id="error"></div>
+    <div id="success"></div>
+    <div class="note">默认示例账号: <strong>admin / 123456</strong>（超级管理员）</div>
+  </form>
 
-    <script>
-    document.getElementById('login-form').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const role = document.getElementById('role').value;
-        const username = document.getElementById('username').value;
-        const password = document.getElementById('password').value;
-        const errorMessage = document.getElementById('error-message');
+  <form id="registerForm" style="display:none;">
+    <div class="form-group">
+      <label for="reg_role">注册类型</label>
+      <select id="reg_role" required>
+        <option value="student">学员</option>
+        <option value="coach">教练</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="reg_username">用户名</label>
+      <input id="reg_username" required autocomplete="username"/>
+    </div>
+    <div class="form-group">
+      <label for="reg_password">密码</label>
+      <input id="reg_password" type="password" required autocomplete="new-password"/>
+    </div>
+    <div class="form-group">
+      <label for="reg_confirm_password">确认密码</label>
+      <input id="reg_confirm_password" type="password" required autocomplete="new-password"/>
+    </div>
+    <div class="form-group">
+      <label for="reg_real_name">真实姓名</label>
+      <input id="reg_real_name" required/>
+    </div>
+    <div class="form-group">
+      <label for="reg_gender">性别</label>
+      <select id="reg_gender" required>
+        <option value="male">男</option>
+        <option value="female">女</option>
+        <option value="other">其他</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="reg_age">年龄</label>
+      <input id="reg_age" type="number" min="5" max="100" required/>
+    </div>
+    <div class="form-group">
+      <label for="reg_phone">手机号</label>
+      <input id="reg_phone" type="tel" required/>
+    </div>
+    <div class="form-group">
+      <label for="reg_email">邮箱</label>
+      <input id="reg_email" type="email" required/>
+    </div>
+    <div class="form-group" id="coach_fields" style="display:none;">
+      <label for="reg_coach_level">教练等级</label>
+      <select id="reg_coach_level">
+        <option value="junior">初级</option>
+        <option value="mid">中级</option>
+        <option value="senior">高级</option>
+      </select>
+    </div>
+    <div class="form-group" id="coach_achievements" style="display:none;">
+      <label for="reg_achievements">个人成就</label>
+      <textarea id="reg_achievements" rows="3" style="width:100%;padding:10px;border:1px solid #e6eefc;border-radius:8px;font-size:14px;box-sizing:border-box;resize:vertical"></textarea>
+    </div>
+    <button type="submit" class="btn-success">注册</button>
+    <div id="reg_error"></div>
+    <div id="reg_success"></div>
+  </form>
 
-        try {
-            const response = await fetch('/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ role, username, password })
-            });
-            const result = await response.json();
+  <div class="toggle-form">
+    <span id="toggle-text">还没有账号？</span>
+    <span class="toggle-link" id="toggle-link">立即注册</span>
+  </div>
+</div>
 
-            if (result.success) {
-                //修改了这里
-                if (role === "super_admin") {
-                    window.location.href = "/super_admin/dashboard";
-                }
-                else if (role === "student"){
-                    window.location.href = "/student-dashboard";
-                }
-                else if(role === "coach"){
-                    window.location.href = "/coach-dashboard";
-                }
-                else if(role === "campus_admin"){
-                    window.location.href = "/campus_admin-dashboard";
-                }
-                else {
-                    window.location.href = `/${role}-dashboard`;
-                }
-            } else {
-                errorMessage.textContent = result.message || '用户名或密码错误';
-                errorMessage.style.display = 'block';
-            }
-        } catch (error) {
-            errorMessage.textContent = '系统错误，请稍后重试';
-            errorMessage.style.display = 'block';
-        }
+<script>
+// 切换登录/注册表单
+const toggleLink = document.getElementById('toggle-link');
+const toggleText = document.getElementById('toggle-text');
+const loginForm = document.getElementById('loginForm');
+const registerForm = document.getElementById('registerForm');
+const formTitle = document.getElementById('form-title');
+
+toggleLink.addEventListener('click', function() {
+  if (loginForm.style.display === 'none') {
+    // 切换到登录
+    loginForm.style.display = 'block';
+    registerForm.style.display = 'none';
+    formTitle.textContent = '系统登录';
+    toggleText.textContent = '还没有账号？';
+    toggleLink.textContent = '立即注册';
+  } else {
+    // 切换到注册
+    loginForm.style.display = 'none';
+    registerForm.style.display = 'none';
+    registerForm.style.display = 'block';
+    formTitle.textContent = '用户注册';
+    toggleText.textContent = '已有账号？';
+    toggleLink.textContent = '立即登录';
+  }
+});
+
+// 根据注册类型显示/隐藏教练相关字段
+document.getElementById('reg_role').addEventListener('change', function() {
+  const coachFields = document.getElementById('coach_fields');
+  const coachAchievements = document.getElementById('coach_achievements');
+
+  if (this.value === 'coach') {
+    coachFields.style.display = 'block';
+    coachAchievements.style.display = 'block';
+  } else {
+    coachFields.style.display = 'none';
+    coachAchievements.style.display = 'none';
+  }
+});
+
+// 登录表单提交
+document.getElementById('loginForm').addEventListener('submit', async function(e){
+  e.preventDefault();
+  const role = document.getElementById('role').value;
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value;
+  const err = document.getElementById('error');
+  const success = document.getElementById('success');
+
+  err.style.display = 'none';
+  success.style.display = 'none';
+
+  try{
+    const res = await fetch('/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({role,username,password})});
+    const data = await res.json();
+    if(data.success){
+      success.textContent = '登录成功！正在跳转...';
+      success.style.display = 'block';
+      setTimeout(() => {
+        if(role==='super_admin') location.href='/super_admin/dashboard';
+        else if(role==='campus_admin') location.href='/campus_admin/dashboard';
+        else if(role==='coach') location.href='/coach-dashboard';
+        else location.href='/student-dashboard';
+      }, 1000);
+    } else {
+      err.textContent = data.message || '登录失败，请检查用户名或密码';
+      err.style.display = 'block';
+    }
+  } catch(error){
+    err.textContent = '网络或服务器错误';
+    err.style.display = 'block';
+  }
+});
+
+// 注册表单提交
+document.getElementById('registerForm').addEventListener('submit', async function(e){
+  e.preventDefault();
+  const regError = document.getElementById('reg_error');
+  const regSuccess = document.getElementById('reg_success');
+
+  regError.style.display = 'none';
+  regSuccess.style.display = 'none';
+
+  // 验证密码确认
+  const password = document.getElementById('reg_password').value;
+  const confirmPassword = document.getElementById('reg_confirm_password').value;
+
+  if (password !== confirmPassword) {
+    regError.textContent = '两次输入的密码不一致';
+    regError.style.display = 'block';
+    return;
+  }
+
+  const formData = {
+    username: document.getElementById('reg_username').value.trim(),
+    password: password,
+    real_name: document.getElementById('reg_real_name').value.trim(),
+    gender: document.getElementById('reg_gender').value,
+    age: parseInt(document.getElementById('reg_age').value),
+    phone: document.getElementById('reg_phone').value.trim(),
+    email: document.getElementById('reg_email').value.trim(),
+    role: document.getElementById('reg_role').value,
+    coach_level: document.getElementById('reg_role').value === 'coach' ? document.getElementById('reg_coach_level').value : null,
+    achievements: document.getElementById('reg_role').value === 'coach' ? document.getElementById('reg_achievements').value.trim() : null
+  };
+
+  try {
+    const res = await fetch('/register', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(formData)
     });
+    const data = await res.json();
+
+    if(data.success){
+      regSuccess.textContent = '注册成功！可以立即登录。';
+      regSuccess.style.display = 'block';
+      // 清空表单
+      this.reset();
+      // 3秒后自动切换回登录
+      setTimeout(() => {
+        loginForm.style.display = 'block';
+        registerForm.style.display = 'none';
+        formTitle.textContent = '系统登录';
+        toggleText.textContent = '还没有账号？';
+        toggleLink.textContent = '立即注册';
+        regSuccess.style.display = 'none';
+      }, 3000);
+    } else {
+      regError.textContent = data.message || '注册失败，请重试';
+      regError.style.display = 'block';
+    }
+  } catch(error) {
+    regError.textContent = '网络或服务器错误';
+    regError.style.display = 'block';
+  }
+});
 </script>
 </body>
 </html>
