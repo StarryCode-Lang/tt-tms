@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>教练端 - 时间设置</title>
+    <style>
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: #f5f7fa; display: flex; height: 100vh; }
+        .sidebar { width: 240px; background: linear-gradient(180deg, #007bff, #0056b3); color: white; display: flex; flex-direction: column; padding: 20px 0; }
+        .sidebar h2 { text-align: center; margin-bottom: 2rem; }
+        .sidebar a { color: white; padding: 12px 20px; display: block; text-decoration: none; border-radius: 6px; margin: 5px 15px; transition: background 0.3s; }
+        .sidebar a:hover { background: rgba(255, 255, 255, 0.2); }
+        .main-content { flex: 1; display: flex; flex-direction: column; }
+        .topbar { height: 60px; background: white; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; border-bottom: 1px solid #ddd; }
+        .topbar h3 { margin: 0; color: #333; }
+        .topbar button { background: #007bff; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; }
+        .topbar button:hover { background: #0056b3; }
+        .content { padding: 20px; }
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; }
+        th, td { padding: 12px; text-align: center; border-bottom: 1px solid #eee; }
+        th { background: #007bff; color: white; }
+        tr:hover { background: #f1f5ff; }
+        .btn { padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; }
+        .btn-save { background: #28a745; color: white; margin-top: 15px; }
+    </style>
+</head>
+<body>
+    <!-- 左侧导航 -->
+    <div class="sidebar">
+        <h2>教练端</h2>
+        <a href="/coach-dashboard">🏠 首页</a>
+        <a href="/coach/appointments">📅 课程管理</a>
+        <a href="/coach/students">👨‍🎓 学生管理</a>
+        <a href="/coach/availability">⏰ 时间设置</a>
+        <a href="/coach/evaluations">📝 训练评价</a>
+        <a href="/coach/schedule">📊 我的课表</a>
+        <a href="/coach/messages">📩 系统消息</a>
+        <a href="/coach/profile">⚙️ 个人设置</a>
+    </div>
+
+    <!-- 主内容 -->
+    <div class="main-content">
+        <div class="topbar">
+            <h3>时间设置 - 教练端</h3>
+            <button onclick="logout()">退出登录</button>
+        </div>
+        <div class="content">
+            <h2>设置可预约时间段</h2>
+            <form id="availabilityForm">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>日期</th>
+                            <th>上午 9-10</th>
+                            <th>上午 10-11</th>
+                            <th>下午 14-15</th>
+                            <th>下午 15-16</th>
+                        </tr>
+                    </thead>
+                    <tbody id="availabilityTable"></tbody>
+                </table>
+                <button type="submit" class="btn btn-save">保存设置</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const slots = ["09:00-10:00", "10:00-11:00", "14:00-15:00", "15:00-16:00"];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadAvailability();
+            document.getElementById('availabilityForm').addEventListener('submit', saveAvailability);
+        });
+
+        function logout() {
+            window.location.href = '/logout';
+        }
+
+        function loadAvailability() {
+            fetch('/api/coach/availability')
+                .then(res => res.json())
+                .then(data => {
+                    const tbody = document.getElementById('availabilityTable');
+                    tbody.innerHTML = '';
+                    data.forEach(day => {
+                        let row = `<tr><td>${day.date}</td>`;
+                        slots.forEach(slot => {
+                            const checked = day.slots.includes(slot) ? "checked" : "";
+                            row += `<td><input type="checkbox" value="${day.date} ${slot}" ${checked}></td>`;
+                        });
+                        row += "</tr>";
+                        tbody.innerHTML += row;
+                    });
+                });
+        }
+
+        function saveAvailability(event) {
+            event.preventDefault();
+            const checked = Array.from(document.querySelectorAll('#availabilityTable input:checked'))
+                .map(cb => cb.value);
+
+            fetch('/api/coach/availability', {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ slots: checked })
+            })
+            .then(res => res.json())
+            .then(data => {
+                alert(data.message);
+                loadAvailability();
+            });
+        }
+    </script>
+</body>
+</html>
