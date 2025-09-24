@@ -10,7 +10,7 @@ app.secret_key = "your_secret_key"  # 用于 session 管理
 db_config = {
     "host": "localhost",
     "user": "root",
-    "password": "mysqladmin",
+    "password": "root",
     "database": "ttms_db",
     "cursorclass": pymysql.cursors.DictCursor,
     "autocommit": True

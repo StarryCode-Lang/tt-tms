@@ -181,7 +181,7 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
       setTimeout(() => {
         if(role==='super_admin') location.href='/super_admin/dashboard';
         else if(role==='campus_admin') location.href='/campus_admin/dashboard';
-        else if(role==='coach') location.href='/coach/dashboard';
+        else if(role==='coach') location.href='/coach-dashboard';
         else location.href='/student-dashboard';
       }, 1000);
     } else {
