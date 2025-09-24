@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>教练端 - 乒乓球培训管理系统</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+            display: flex;
+            height: 100vh;
+        }
+        /* 左侧导航 */
+        .sidebar {
+            width: 240px;
+            background: linear-gradient(180deg, #007bff, #0056b3);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            padding: 20px 0;
+        }
+        .sidebar h2 {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .sidebar a {
+            color: white;
+            padding: 12px 20px;
+            display: block;
+            text-decoration: none;
+            border-radius: 6px;
+            margin: 5px 15px;
+            transition: background 0.3s;
+        }
+        .sidebar a:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        /* 顶部栏 */
+        .topbar {
+            height: 60px;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        .topbar h3 {
+            margin: 0;
+            color: #333;
+        }
+        .topbar button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .topbar button:hover {
+            background: #0056b3;
+        }
+        /* 主内容 */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .dashboard {
+            padding: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+        }
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+            cursor: pointer;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        .card h4 {
+            margin: 0 0 10px;
+            color: #007bff;
+        }
+        .card p {
+            margin: 0;
+            color: #555;
+        }
+        /* 统计信息样式 */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007bff;
+        }
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <!-- 左侧导航栏 -->
+    <div class="sidebar">
+        <h2>教练端</h2>
+        <a href="#">🏠 首页</a>
+        <a href="#">📅 课程管理</a>
+        <a href="#">👨‍🎓 学生管理</a>
+        <a href="#">⏰ 时间设置</a>
+        <a href="#">📝 训练评价</a>
+        <a href="#">📊 数据统计</a>
+        <a href="#">📩 系统消息</a>
+        <a href="#">⚙️ 个人设置</a>
+    </div>
+
+    <!-- 主内容区 -->
+    <div class="main-content">
+        <!-- 顶部栏 -->
+        <div class="topbar">
+            <h3>乒乓球培训管理系统 - 教练端</h3>
+            <button onclick="logout()">退出登录</button>
+        </div>
+
+        <!-- 统计信息 -->
+        <div class="stats" id="statsContainer">
+            <!-- 动态加载统计信息 -->
+        </div>
+
+        <!-- 仪表盘卡片 -->
+        <div class="dashboard">
+            <div class="card" onclick="navigate('appointments')">
+                <h4>课程管理</h4>
+                <p>查看待确认课程，管理课程安排，处理预约请求。</p>
+            </div>
+            <div class="card" onclick="navigate('students')">
+                <h4>学生管理</h4>
+                <p>管理当前学生，审核新学生申请，查看学生信息。</p>
+            </div>
+            <div class="card" onclick="navigate('availability')">
+                <h4>时间设置</h4>
+                <p>设置可预约时间段，管理个人时间安排。</p>
+            </div>
+            <div class="card" onclick="navigate('evaluations')">
+                <h4>训练评价</h4>
+                <p>为学生撰写课程评价，查看历史评价记录。</p>
+            </div>
+            <div class="card" onclick="navigate('schedule')">
+                <h4>我的课表</h4>
+                <p>查看个人课程安排，管理时间冲突。</p>
+            </div>
+            <div class="card" onclick="navigate('messages')">
+                <h4>系统消息</h4>
+                <p>接收预约提醒、学生申请和系统通知。</p>
+            </div>
+            <div class="card" onclick="navigate('profile')">
+                <h4>个人设置</h4>
+                <p>修改个人信息、密码和教练资料。</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 页面加载时获取统计信息
+        document.addEventListener('DOMContentLoaded', function() {
+            fetchCoachStats();
+        });
+
+        function fetchCoachStats() {
+            fetch('/api/coach/stats')
+                .then(response => response.json())
+                .then(data => {
+                    const statsContainer = document.getElementById('statsContainer');
+                    statsContainer.innerHTML = `
+                        <div class="stat-card">
+                            <div class="stat-number">${data.pending_appointments}</div>
+                            <div class="stat-label">待确认课程</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${data.total_students}</div>
+                            <div class="stat-label">当前学生</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${data.weekly_appointments}</div>
+                            <div class="stat-label">本周课程</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${data.unread_messages}</div>
+                            <div class="stat-label">未读消息</div>
+                        </div>
+                    `;
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        function navigate(page) {
+            window.location.href = `/coach/${page}`;
+        }
+
+        function logout() {
+            window.location.href = '/logout';
+        }
+    </script>
+</body>
+</html>

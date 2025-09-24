@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>教练端 - 系统消息</title>
+    <style>
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: #f5f7fa; display: flex; height: 100vh; }
+        .sidebar { width: 240px; background: linear-gradient(180deg, #007bff, #0056b3); color: white; display: flex; flex-direction: column; padding: 20px 0; }
+        .sidebar h2 { text-align: center; margin-bottom: 2rem; }
+        .sidebar a { color: white; padding: 12px 20px; display: block; text-decoration: none; border-radius: 6px; margin: 5px 15px; transition: background 0.3s; }
+        .sidebar a:hover { background: rgba(255, 255, 255, 0.2); }
+        .main-content { flex: 1; display: flex; flex-direction: column; }
+        .topbar { height: 60px; background: white; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; border-bottom: 1px solid #ddd; }
+        .topbar h3 { margin: 0; color: #333; }
+        .topbar button { background: #007bff; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; }
+        .topbar button:hover { background: #0056b3; }
+        .content { padding: 20px; }
+        .message-card { background: white; border-radius: 8px; padding: 15px; margin-bottom: 12px; border-left: 6px solid #007bff; }
+        .message-card.read { opacity: 0.6; border-left: 6px solid #6c757d; }
+        .message-meta { font-size: 12px; color: gray; margin-bottom: 8px; }
+        .btn { padding: 5px 10px; border: none; border-radius: 4px; cursor: pointer; }
+        .btn-mark { background: #28a745; color: white; }
+    </style>
+</head>
+<body>
+    <!-- 左侧导航 -->
+    <div class="sidebar">
+        <h2>教练端</h2>
+        <a href="/coach-dashboard">🏠 首页</a>
+        <a href="/coach/appointments">📅 课程管理</a>
+        <a href="/coach/students">👨‍🎓 学生管理</a>
+        <a href="/coach/availability">⏰ 时间设置</a>
+        <a href="/coach/evaluations">📝 训练评价</a>
+        <a href="/coach/schedule">📊 我的课表</a>
+        <a href="/coach/messages">📩 系统消息</a>
+        <a href="/coach/profile">⚙️ 个人设置</a>
+    </div>
+
+    <!-- 主内容 -->
+    <div class="main-content">
+        <div class="topbar">
+            <h3>系统消息 - 教练端</h3>
+            <button onclick="logout()">退出登录</button>
+        </div>
+        <div class="content">
+            <h2>我的消息</h2>
+            <div id="messagesContainer"></div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", loadMessages);
+
+        function logout() {
+            window.location.href = '/logout';
+        }
+
+        function loadMessages() {
+            fetch('/api/coach/messages')
+                .then(res => res.json())
+                .then(data => {
+                    const container = document.getElementById('messagesContainer');
+                    container.innerHTML = '';
+                    data.forEach(msg => {
+                        let card = `<div class="message-card ${msg.is_read ? 'read' : ''}">
+                            <div class="message-meta">类型: ${msg.type} | 时间: ${msg.created_at}</div>
+                            <div class="message-content">${msg.content}</div>
+                            ${msg.is_read ? "" : `<button class="btn btn-mark" onclick="markAsRead(${msg.id})">标记为已读</button>`}
+                        </div>`;
+                        container.innerHTML += card;
+                    });
+                });
+        }
+
+        function markAsRead(id) {
+            fetch(`/api/coach/messages/${id}/read`, { method: "POST" })
+                .then(res => res.json())
+                .then(data => {
+                    alert(data.message);
+                    loadMessages();
+                });
+        }
+    </script>
+</body>
+</html>
