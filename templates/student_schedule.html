@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>学员端 - 我的课表</title>
+  <style>
+    body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f5f7fa; }
+    .topbar { height: 60px; background: white; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; border-bottom: 1px solid #ddd; }
+    .topbar h3 { margin: 0; color: #333; }
+    .topbar button { background: #ff512f; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; }
+    .topbar button:hover { background: #d63c20; }
+    .container { padding: 20px; max-width: 1000px; margin: auto; }
+    .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
+    .card h4 { margin: 0 0 15px; color: #ff512f; }
+    .schedule-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 5px; text-align: center; font-size: 14px; }
+    .schedule-grid div { padding: 10px; border-radius: 6px; }
+    .header { background: #eee; font-weight: bold; }
+    .confirmed { background: #e0f7e9; color: #222; }
+    .pending { background: #fff3cd; color: #856404; }
+    .cancelled { background: #f8d7da; color: #721c24; }
+    .empty { background: #f2f2f2; color: #aaa; }
+  </style>
+</head>
+<body>
+  <!-- 顶部栏 -->
+  <div class="topbar">
+    <h3>乒乓球培训管理系统 - 学员端</h3>
+    <button onclick="back()">返回主页</button>
+  </div>
+
+  <div class="container">
+    <div class="card">
+      <h4>我的课表（未来一周）</h4>
+      <div class="schedule-grid" id="scheduleGrid"></div>
+    </div>
+  </div>
+
+  <script>
+    function back() {
+      window.location.href = "/student-dashboard";
+    }
+
+    async function loadSchedule() {
+      const res = await fetch("/api/student/my_schedule");
+      const data = await res.json();
+      renderSchedule(data);
+    }
+
+    function renderSchedule(data) {
+      const grid = document.getElementById("scheduleGrid");
+      grid.innerHTML = "";
+      const headers = ["时间段","周一","周二","周三","周四","周五","周六","周日"];
+      headers.forEach(h => {
+        const div = document.createElement("div");
+        div.className = "header";
+        div.textContent = h;
+        grid.appendChild(div);
+      });
+
+      data.slots.forEach(slot => {
+        let div = document.createElement("div");
+        div.className = "header";
+        div.textContent = slot.time;
+        grid.appendChild(div);
+
+        slot.days.forEach(d => {
+          div = document.createElement("div");
+          if (d.status === "confirmed") {
+            div.className = "confirmed";
+            div.innerHTML = `课程<br>${d.coach_name}<br>${d.table_number || ""}`;
+          } else if (d.status === "pending") {
+            div.className = "pending";
+            div.innerHTML = `待确认<br>${d.coach_name}`;
+          } else if (d.status === "cancelled") {
+            div.className = "cancelled";
+            div.textContent = "已取消";
+          } else {
+            div.className = "empty";
+            div.textContent = "-";
+          }
+          grid.appendChild(div);
+        });
+      });
+    }
+
+    loadSchedule();
+  </script>
+</body>
+</html>

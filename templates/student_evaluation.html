@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>学员端 - 训练评价</title>
+  <style>
+    body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f5f7fa; }
+    .topbar { height: 60px; background: white; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; border-bottom: 1px solid #ddd; }
+    .topbar h3 { margin: 0; color: #333; }
+    .topbar button { background: #ff512f; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; }
+    .topbar button:hover { background: #d63c20; }
+    .container { padding: 20px; max-width: 900px; margin: auto; }
+    .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
+    .card h4 { margin: 0 0 15px; color: #ff512f; }
+    select, textarea, button { width: 100%; padding: 8px; margin: 8px 0; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
+    textarea { resize: vertical; min-height: 80px; }
+    button { background: #ff512f; color: white; cursor: pointer; }
+    button:hover { background: #d63c20; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { padding: 10px; border: 1px solid #ddd; text-align: left; font-size: 14px; }
+    th { background: #f2f2f2; }
+    .feedback { color: #0072ff; font-size: 13px; margin-top: 4px; }
+  </style>
+</head>
+<body>
+  <!-- 顶部栏 -->
+  <div class="topbar">
+    <h3>乒乓球培训管理系统 - 学员端</h3>
+    <button onclick="back()">返回主页</button>
+  </div>
+
+  <!-- 主体内容 -->
+  <div class="container">
+    <!-- 新评价 -->
+    <div class="card">
+      <h4>提交训练评价</h4>
+      <label for="lesson">选择课程：</label>
+      <select id="lesson"></select>
+      <label for="comment">我的收获与不足：</label>
+      <textarea id="comment" placeholder="请输入本次训练的收获和不足..."></textarea>
+      <button onclick="submitEvaluation()">提交评价</button>
+    </div>
+
+    <!-- 历史评价 -->
+    <div class="card">
+      <h4>历史评价记录</h4>
+      <table>
+        <thead>
+          <tr>
+            <th>课程时间</th>
+            <th>教练</th>
+            <th>我的评价</th>
+            <th>教练反馈</th>
+          </tr>
+        </thead>
+        <tbody id="records">
+          <tr><td colspan="4">暂无评价记录</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    function back() {
+      window.location.href = "/student-dashboard";
+    }
+
+    // 加载可评价课程和历史评价
+    async function loadData() {
+      const res = await fetch("/api/student/evaluation/info");
+      const data = await res.json();
+
+      // 下拉框
+      const select = document.getElementById("lesson");
+      select.innerHTML = '<option value="">请选择已完成课程</option>';
+      (data.completed_lessons || []).forEach(l => {
+        const opt = document.createElement("option");
+        opt.value = l.appointment_id;
+        opt.textContent = `${l.start_time} - ${l.coach_name}`;
+        select.appendChild(opt);
+      });
+
+      // 历史评价
+      const tbody = document.getElementById("records");
+      tbody.innerHTML = "";
+      if (!data.evaluations || data.evaluations.length === 0) {
+        tbody.innerHTML = "<tr><td colspan='4'>暂无评价记录</td></tr>";
+      } else {
+        data.evaluations.forEach(r => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${r.start_time}</td>
+            <td>${r.coach_name}</td>
+            <td>${r.comment}</td>
+            <td><span class="feedback">${r.feedback || ""}</span></td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+    }
+
+    // 提交评价
+    async function submitEvaluation() {
+      const lesson = document.getElementById("lesson").value;
+      const comment = document.getElementById("comment").value.trim();
+      if (!lesson) {
+        alert("请选择课程！");
+        return;
+      }
+      if (!comment) {
+        alert("请输入评价内容！");
+        return;
+      }
+      const res = await fetch("/api/student/evaluation/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ appointment_id: lesson, comment })
+      });
+      const data = await res.json();
+      alert(data.message);
+      document.getElementById("comment").value = "";
+      loadData();
+    }
+
+    loadData();
+  </script>
+</body>
+</html>

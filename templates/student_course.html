@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>学员端 - 课程预约</title>
+  <style>
+    body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f5f7fa; }
+    .topbar { height: 60px; background: white; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; border-bottom: 1px solid #ddd; }
+    .topbar h3 { margin: 0; color: #333; }
+    .topbar button { background: #ff512f; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; }
+    .topbar button:hover { background: #d63c20; }
+    .container { padding: 20px; max-width: 1000px; margin: auto; }
+    .form-box, .schedule-box { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
+    .form-box h4, .schedule-box h4 { margin: 0 0 15px; color: #ff512f; }
+    select, button { padding: 8px; margin: 5px; border: 1px solid #ddd; border-radius: 6px; }
+    button { background: #ff512f; color: white; border: none; cursor: pointer; }
+    button:hover { background: #d63c20; }
+    .schedule-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 5px; text-align: center; font-size: 14px; }
+    .schedule-grid div { padding: 10px; border-radius: 6px; }
+    .header { background: #eee; font-weight: bold; }
+    .booked { background: #ccc; color: #666; }
+    .free { background: #e0f7e9; cursor: pointer; }
+    .free:hover { background: #b2f0c5; }
+  </style>
+</head>
+<body>
+  <!-- 顶部栏 -->
+  <div class="topbar">
+    <h3>乒乓球培训管理系统 - 学员端</h3>
+    <button onclick="back()">返回主页</button>
+  </div>
+
+  <!-- 主体内容 -->
+  <div class="container">
+    <!-- 教练选择 -->
+    <div class="form-box">
+      <h4>选择教练员</h4>
+      <select id="coachSelect" onchange="loadSchedule()">
+        <option value="">请选择教练</option>
+      </select>
+    </div>
+
+    <!-- 课表显示 -->
+    <div class="schedule-box">
+      <h4>课程预约表（未来一周）</h4>
+      <div class="schedule-grid" id="scheduleGrid"></div>
+    </div>
+  </div>
+
+  <script>
+    function back() {
+      window.location.href = "/student-dashboard";
+    }
+
+    // 页面加载时获取学生的教练列表
+    async function loadCoaches() {
+      const res = await fetch("/student/my_coaches");
+      const data = await res.json();
+      const select = document.getElementById("coachSelect");
+      select.innerHTML = '<option value="">请选择教练</option>';
+      data.forEach(c => {
+        const opt = document.createElement("option");
+        opt.value = c.id;
+        opt.textContent = `${c.real_name}（${c.coach_level}教练）`;
+        select.appendChild(opt);
+      });
+    }
+
+    // 加载课表
+    async function loadSchedule() {
+      const coachId = document.getElementById("coachSelect").value;
+      if (!coachId) return;
+      const res = await fetch(`/student/schedule?coach_id=${coachId}`);
+      const data = await res.json();
+      renderSchedule(data);
+    }
+
+    // 渲染课表
+    function renderSchedule(data) {
+      const grid = document.getElementById("scheduleGrid");
+      grid.innerHTML = "";
+      const headers = ["时间段","周一","周二","周三","周四","周五","周六","周日"];
+      headers.forEach(h => {
+        const div = document.createElement("div");
+        div.className = "header";
+        div.textContent = h;
+        grid.appendChild(div);
+      });
+      data.slots.forEach(slot => {
+        let div = document.createElement("div");
+        div.className = "header";
+        div.textContent = slot.time;
+        grid.appendChild(div);
+        slot.days.forEach(d => {
+          div = document.createElement("div");
+          if (d.status === "booked") {
+            div.className = "booked";
+            div.textContent = "已约";
+          } else {
+            div.className = "free";
+            div.textContent = "空闲";
+            div.onclick = () => bookSlot(d);
+          }
+          grid.appendChild(div);
+        });
+      });
+    }
+
+    // 预约
+    async function bookSlot(slot) {
+      const tableChoice = prompt(`${slot.label} 时段空闲。\n请输入球台编号（留空则系统自动分配）：`);
+      const res = await fetch("/student/book", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+          coach_id: slot.coach_id,
+          start_time: slot.start_time,
+          end_time: slot.end_time,
+          table_number: tableChoice || null
+        })
+      });
+      const data = await res.json();
+      alert(data.message);
+      loadSchedule();
+    }
+
+    loadCoaches();
+  </script>
+</body>
+</html>

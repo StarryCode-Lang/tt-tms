@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>学员端 - 系统消息</title>
+  <style>
+    body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f5f7fa; }
+    .topbar { height: 60px; background: white; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; border-bottom: 1px solid #ddd; }
+    .topbar h3 { margin: 0; color: #333; }
+    .topbar button { background: #ff512f; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; }
+    .topbar button:hover { background: #d63c20; }
+    .container { padding: 20px; max-width: 900px; margin: auto; }
+    .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
+    .card h4 { margin: 0 0 15px; color: #ff512f; }
+    .message { border-bottom: 1px solid #eee; padding: 10px 0; }
+    .message:last-child { border-bottom: none; }
+    .time { font-size: 12px; color: #888; }
+    .content { margin: 5px 0; font-size: 14px; color: #333; }
+    .actions button { margin-right: 8px; background: #ff512f; color: white; border: none; padding: 5px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; }
+    .actions button:hover { background: #d63c20; }
+  </style>
+</head>
+<body>
+  <!-- 顶部栏 -->
+  <div class="topbar">
+    <h3>乒乓球培训管理系统 - 学员端</h3>
+    <button onclick="back()">返回主页</button>
+  </div>
+
+  <!-- 主体内容 -->
+  <div class="container">
+    <div class="card">
+      <h4>系统消息</h4>
+      <div id="messages"></div>
+    </div>
+  </div>
+
+  <script>
+    function back() {
+      window.location.href = "/student-dashboard";
+    }
+
+    // 加载消息
+    async function loadMessages() {
+      const res = await fetch("/api/student/messages");
+      const data = await res.json();
+      const container = document.getElementById("messages");
+      container.innerHTML = "";
+
+      if (!data.length) {
+        container.innerHTML = "<p>暂无系统消息</p>";
+        return;
+      }
+
+      data.forEach(msg => {
+        const div = document.createElement("div");
+        div.className = "message";
+        div.innerHTML = `
+          <div class="time">${msg.created_at}</div>
+          <div class="content">${msg.content}</div>
+        `;
+        if (msg.action_required) {
+          const actionsDiv = document.createElement("div");
+          actionsDiv.className = "actions";
+          actionsDiv.innerHTML = `
+            <button onclick="handleAction(${msg.id}, 'accept')">同意</button>
+            <button onclick="handleAction(${msg.id}, 'reject')">拒绝</button>
+          `;
+          div.appendChild(actionsDiv);
+        }
+        container.appendChild(div);
+      });
+    }
+
+    // 处理消息
+    async function handleAction(id, action) {
+      const res = await fetch("/api/student/messages/action", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, action })
+      });
+      const data = await res.json();
+      alert(data.message);
+      loadMessages();
+    }
+
+    loadMessages();
+  </script>
+</body>
+</html>

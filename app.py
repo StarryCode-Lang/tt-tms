@@ -89,15 +89,6 @@ def super_admin_dashboard():
     else:
         return redirect(url_for("login_page"))
 
-# ---------------------
-# 学生后台首页
-# ---------------------
-@app.route("/student-dashboard")
-def student_dashboard():
-    if "role" in session and session["role"] == "student":
-        return render_template("student_dashboard.html")
-    else:
-        return redirect(url_for("login_page"))
 
 @app.route("/campus_admin-dashboard")
 def campus_admin_dashboard():
@@ -706,6 +697,535 @@ def edit_message(id):
 
     conn.close()
     return render_template("message_form.html", message=message, users=users)
+
+
+
+
+
+
+
+
+
+
+# ---------------------
+# 学生后台首页--学生端
+# ---------------------
+@app.route("/student-dashboard")
+def student_dashboard():
+    if "role" in session and session["role"] == "student":
+        return render_template("student_dashboard.html")
+    else:
+        return redirect(url_for("login_page"))
+
+#
+#
+#学生查看教练功能
+#
+#
+
+@app.route("/student/coaches", methods=["GET"])
+def student_coaches():
+    # 检查登录（开发阶段可模拟）
+    student_id = session.get("user_id")
+    if not student_id:
+        session["user_id"] = 3   # 假设测试学生 ID=3
+        student_id = 3
+
+    # 获取学生所在校区
+    conn = get_db_connection()
+    campus_id = None
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT campus_id FROM users WHERE id=%s", (student_id,))
+            result = cursor.fetchone()
+            campus_id = result["campus_id"] if result else None
+    finally:
+        conn.close()
+
+    # 如果是 API 请求（前端用 fetch 访问 /student/coaches?format=json）
+    if "format" in session and session["format"] == "json":
+        conn = get_db_connection()
+        try:
+            with conn.cursor() as cursor:
+                sql = """
+                    SELECT id, real_name, gender, age, photo_path, achievements, coach_level, hourly_rate
+                    FROM users
+                    WHERE role='coach' AND campus_id=%s AND is_approved=1
+                """
+                cursor.execute(sql, (campus_id,))
+                coaches = cursor.fetchall()
+                return jsonify(coaches)
+        finally:
+            conn.close()
+
+    # 默认返回 HTML 页面
+    return render_template("student_searchcoach.html")
+
+
+
+
+#
+#
+#课程预约功能
+#
+#
+
+
+
+@app.route("/student/my_coaches")
+def my_coaches():
+    student_id = session.get("user_id", 3)  # 模拟已登录
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cursor:
+            sql = """
+            SELECT u.id, u.real_name, u.coach_level
+            FROM student_coach_relations r
+            JOIN users u ON r.coach_id = u.id
+            WHERE r.student_id=%s AND r.status='approved'
+            """
+            cursor.execute(sql, (student_id,))
+            return jsonify(cursor.fetchall())
+    finally:
+        conn.close()
+
+# 获取教练未来一周课表
+@app.route("/student/schedule")
+def get_schedule():
+    coach_id = request.args.get("coach_id")
+    if not coach_id:
+        return jsonify({"error": "缺少教练ID"}), 400
+
+    today = datetime.now().date()
+    next_week = today + datetime.timedelta(days=7)
+
+    time_slots = [
+        ("上午 9-10", "09:00:00", "10:00:00"),
+        ("上午 10-11", "10:00:00", "11:00:00"),
+        ("下午 14-15", "14:00:00", "15:00:00"),
+        ("下午 15-16", "15:00:00", "16:00:00")
+    ]
+
+    conn = get_db_connection()
+    booked = []
+    try:
+        with conn.cursor() as cursor:
+            sql = """
+                SELECT start_time, end_time
+                FROM appointments
+                WHERE coach_id=%s AND start_time >= %s AND start_time < %s
+                  AND status IN ('pending','confirmed')
+            """
+            cursor.execute(sql, (coach_id, today, next_week))
+            booked = cursor.fetchall()
+    finally:
+        conn.close()
+
+    booked_set = set((b["start_time"].strftime("%Y-%m-%d %H:%M:%S"),
+                      b["end_time"].strftime("%Y-%m-%d %H:%M:%S")) for b in booked)
+
+    schedule = {"slots": []}
+    for slot_label, start_h, end_h in time_slots:
+        row = {"time": slot_label, "days": []}
+        for i in range(7):
+            day = today + datetime.timedelta(days=i)
+            start_dt = f"{day} {start_h}"
+            end_dt = f"{day} {end_h}"
+            if (start_dt, end_dt) in booked_set:
+                row["days"].append({"status": "booked"})
+            else:
+                row["days"].append({
+                    "status": "free",
+                    "label": f"{day} {slot_label}",
+                    "coach_id": coach_id,
+                    "start_time": start_dt,
+                    "end_time": end_dt
+                })
+        schedule["slots"].append(row)
+    return jsonify(schedule)
+
+# 学生预约课程
+@app.route("/student/book", methods=["POST"])
+def book_course():
+    data = request.json
+    student_id = session.get("user_id", 3)
+    coach_id = data["coach_id"]
+    start_time = data["start_time"]
+    end_time = data["end_time"]
+    table_number = data.get("table_number")
+
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cursor:
+            sql = """INSERT INTO appointments 
+                     (student_id, coach_id, start_time, end_time, duration_minutes, table_number, status) 
+                     VALUES (%s,%s,%s,%s,60,%s,'pending')"""
+            cursor.execute(sql, (student_id, coach_id, start_time, end_time, table_number))
+        conn.commit()
+        return jsonify({"message": "预约申请已提交，等待教练确认"})
+    finally:
+        conn.close()
+
+# 页面路由
+@app.route("/student/appointments")
+def appointments_page():
+    return render_template("student_course.html")
+
+
+
+
+
+#
+#
+#我的账户功能
+#
+#
+@app.route("/student/account")
+def account_page():
+    return render_template("student_account.html")
+
+# 获取账户信息
+@app.route("/api/student/account")
+def get_account():
+    student_id = session.get("user_id", 3)  # 模拟已登录
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cursor:
+            # 获取余额
+            cursor.execute("SELECT balance FROM users WHERE id=%s", (student_id,))
+            balance_row = cursor.fetchone()
+            balance = balance_row["balance"] if balance_row else 0.0
+
+            # 获取交易记录
+            cursor.execute("""
+                SELECT created_at AS time, type, amount, note
+                FROM transactions
+                WHERE user_id=%s
+                ORDER BY created_at DESC
+                LIMIT 20
+            """, (student_id,))
+            transactions = cursor.fetchall()
+        return jsonify({"balance": balance, "transactions": transactions})
+    finally:
+        conn.close()
+
+# 充值
+@app.route("/api/student/recharge", methods=["POST"])
+def recharge():
+    student_id = session.get("user_id", 3)
+    data = request.json
+    amount = float(data.get("amount", 0))
+    method = data.get("method", "offline")
+
+    if amount <= 0:
+        return jsonify({"message": "充值金额必须大于0"}), 400
+
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cursor:
+            # 更新余额
+            cursor.execute("UPDATE users SET balance = balance + %s WHERE id=%s", (amount, student_id))
+            # 记录交易
+            cursor.execute("""
+                INSERT INTO transactions (user_id, type, amount, note, created_at)
+                VALUES (%s, '充值', %s, %s, NOW())
+            """, (student_id, amount, f"{method}充值"))
+        conn.commit()
+        return jsonify({"message": f"成功充值 ￥{amount}"})
+    finally:
+        conn.close()
+
+
+
+
+
+#
+#
+#学生月赛功能
+#
+#
+@app.route("/student/tournament")
+def tournament_page():
+    return render_template("student_tournament.html")
+
+# 获取账户余额 + 我的赛程
+@app.route("/api/student/tournament/info")
+def tournament_info():
+    student_id = session.get("user_id", 3)  # 模拟登录
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cursor:
+            # 查询余额
+            cursor.execute("SELECT balance FROM users WHERE id=%s", (student_id,))
+            row = cursor.fetchone()
+            balance = row["balance"] if row else 0.0
+
+            # 查询赛程
+            cursor.execute("""
+                SELECT round, opponent_name AS opponent, table_number, match_time AS time
+                FROM tournament_schedule
+                WHERE student_id=%s
+                ORDER BY round ASC
+            """, (student_id,))
+            schedule = cursor.fetchall()
+        return jsonify({"balance": balance, "schedule": schedule})
+    finally:
+        conn.close()
+
+# 报名
+@app.route("/api/student/tournament/register", methods=["POST"])
+def tournament_register():
+    student_id = session.get("user_id", 3)
+    group = request.json.get("group")
+    fee = 30.0
+
+    if not group:
+        return jsonify({"message": "请选择组别"}), 400
+
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cursor:
+            # 检查余额
+            cursor.execute("SELECT balance FROM users WHERE id=%s", (student_id,))
+            row = cursor.fetchone()
+            balance = row["balance"] if row else 0.0
+            if balance < fee:
+                return jsonify({"message": "余额不足，请先充值"}), 400
+
+            # 检查是否已报名
+            cursor.execute("SELECT id FROM tournament_registrations WHERE student_id=%s AND MONTH(NOW())=MONTH(created_at)", (student_id,))
+            if cursor.fetchone():
+                return jsonify({"message": "本月已报名，无需重复报名"}), 400
+
+            # 扣费
+            cursor.execute("UPDATE users SET balance = balance - %s WHERE id=%s", (fee, student_id))
+            # 插入报名记录
+            cursor.execute("""
+                INSERT INTO tournament_registrations (student_id, group_name, created_at)
+                VALUES (%s, %s, NOW())
+            """, (student_id, group))
+            # 记录交易
+            cursor.execute("""
+                INSERT INTO transactions (user_id, type, amount, note, created_at)
+                VALUES (%s, '扣费', -%s, %s, NOW())
+            """, (student_id, fee, f"报名月赛 {group} 组"))
+        conn.commit()
+        return jsonify({"message": f"报名成功！已参加 {group} 组比赛，扣费￥{fee}"})
+    finally:
+        conn.close()
+
+
+
+
+
+
+#
+#
+#学生查看课表功能
+#
+#
+@app.route("/student/my_schedule")
+def my_schedule_page():
+    return render_template("student_schedule.html")
+
+
+@app.route("/api/student/my_schedule")
+def my_schedule():
+    student_id = session.get("user_id", 3)
+    today = datetime.now().date()
+    next_week = today + timedelta(days=7)
+
+    # 定义时间段
+    time_slots = [
+        ("上午 9-10", "09:00:00", "10:00:00"),
+        ("上午 10-11", "10:00:00", "11:00:00"),
+        ("下午 14-15", "14:00:00", "15:00:00"),
+        ("下午 15-16", "15:00:00", "16:00:00")
+    ]
+
+    conn = get_db_connection()
+    schedule = {"slots": []}
+    try:
+        with conn.cursor() as cursor:
+            # 获取该学生的预约
+            sql = """
+                SELECT a.start_time, a.end_time, a.status, a.table_number,
+                       u.real_name AS coach_name
+                FROM appointments a
+                JOIN users u ON a.coach_id = u.id
+                WHERE a.student_id=%s AND a.start_time >= %s AND a.start_time < %s
+            """
+            cursor.execute(sql, (student_id, today, next_week))
+            rows = cursor.fetchall()
+
+        # 组织成字典方便查找
+        booked_map = {}
+        for r in rows:
+            key = (r["start_time"].strftime("%Y-%m-%d %H:%M:%S"),
+                   r["end_time"].strftime("%Y-%m-%d %H:%M:%S"))
+            booked_map[key] = r
+
+        # 构建课表
+        for slot_label, start_h, end_h in time_slots:
+            row = {"time": slot_label, "days": []}
+            for i in range(7):
+                day = today + timedelta(days=i)
+                start_dt = f"{day} {start_h}"
+                end_dt = f"{day} {end_h}"
+
+                if (start_dt, end_dt) in booked_map:
+                    r = booked_map[(start_dt, end_dt)]
+                    row["days"].append({
+                        "status": r["status"],
+                        "coach_name": r["coach_name"],
+                        "table_number": r["table_number"]
+                    })
+                else:
+                    row["days"].append({"status": "empty"})
+            schedule["slots"].append(row)
+
+        return jsonify(schedule)
+    finally:
+        conn.close()
+
+
+
+
+
+
+
+
+
+#
+#
+#学生训练评价功能
+#
+#
+@app.route("/student/evaluation")
+def evaluation_page():
+    return render_template("student_evaluation.html")
+
+
+# 获取学生的已完成课程 + 历史评价
+@app.route("/api/student/evaluation/info")
+def evaluation_info():
+    student_id = session.get("user_id", 3)
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cursor:
+            # 查询已完成可评价课程
+            cursor.execute("""
+                SELECT a.id AS appointment_id, a.start_time, u.real_name AS coach_name
+                FROM appointments a
+                JOIN users u ON a.coach_id = u.id
+                WHERE a.student_id=%s AND a.status='completed'
+                  AND NOT EXISTS (
+                      SELECT 1 FROM evaluations e WHERE e.appointment_id = a.id
+                  )
+                ORDER BY a.start_time DESC
+            """, (student_id,))
+            lessons = cursor.fetchall()
+
+            # 历史评价
+            cursor.execute("""
+                SELECT e.comment, e.feedback, a.start_time, u.real_name AS coach_name
+                FROM evaluations e
+                JOIN appointments a ON e.appointment_id = a.id
+                JOIN users u ON a.coach_id = u.id
+                WHERE e.student_id=%s
+                ORDER BY a.start_time DESC
+            """, (student_id,))
+            evaluations = cursor.fetchall()
+
+        return jsonify({"completed_lessons": lessons, "evaluations": evaluations})
+    finally:
+        conn.close()
+
+
+# 提交评价
+@app.route("/api/student/evaluation/submit", methods=["POST"])
+def evaluation_submit():
+    student_id = session.get("user_id", 3)
+    data = request.json
+    appointment_id = data.get("appointment_id")
+    comment = data.get("comment")
+
+    if not appointment_id or not comment:
+        return jsonify({"message": "参数错误"}), 400
+
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cursor:
+            # 插入评价
+            cursor.execute("""
+                INSERT INTO evaluations (student_id, appointment_id, comment, created_at)
+                VALUES (%s, %s, %s, NOW())
+            """, (student_id, appointment_id, comment))
+        conn.commit()
+        return jsonify({"message": "评价提交成功"})
+    finally:
+        conn.close()
+
+
+
+
+
+
+
+
+#
+#
+#学生系统消息页面
+#
+#
+@app.route("/student/messages")
+def messages_page():
+    return render_template("student_message.html")
+
+
+# 获取系统消息
+@app.route("/api/student/messages")
+def get_messages():
+    student_id = session.get("user_id", 3)
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                SELECT id, content, created_at, action_required, status
+                FROM system_messages
+                WHERE user_id=%s
+                ORDER BY created_at DESC
+            """, (student_id,))
+            msgs = cursor.fetchall()
+        return jsonify(msgs)
+    finally:
+        conn.close()
+
+
+# 处理消息动作
+@app.route("/api/student/messages/action", methods=["POST"])
+def handle_message_action():
+    student_id = session.get("user_id", 3)
+    data = request.json
+    msg_id = data.get("id")
+    action = data.get("action")  # accept / reject
+
+    if not msg_id or action not in ["accept", "reject"]:
+        return jsonify({"message": "参数错误"}), 400
+
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                UPDATE system_messages
+                SET status=%s
+                WHERE id=%s AND user_id=%s
+            """, (action, msg_id, student_id))
+        conn.commit()
+        return jsonify({"message": f"已{ '同意' if action=='accept' else '拒绝' }处理"})
+    finally:
+        conn.close()
+
 
 
 

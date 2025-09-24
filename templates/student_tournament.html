@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>学员端 - 月赛报名</title>
+  <style>
+    body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f5f7fa; }
+    .topbar { height: 60px; background: white; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; border-bottom: 1px solid #ddd; }
+    .topbar h3 { margin: 0; color: #333; }
+    .topbar button { background: #ff512f; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; }
+    .topbar button:hover { background: #d63c20; }
+    .container { padding: 20px; max-width: 900px; margin: auto; }
+    .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
+    .card h4 { margin: 0 0 15px; color: #ff512f; }
+    .balance { font-size: 20px; color: #333; margin-bottom: 10px; }
+    select, button { padding: 8px; margin: 5px 0; border: 1px solid #ddd; border-radius: 6px; }
+    button { background: #ff512f; color: white; cursor: pointer; }
+    button:hover { background: #d63c20; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { padding: 10px; border: 1px solid #ddd; text-align: center; font-size: 14px; }
+    th { background: #f2f2f2; }
+    .info { color: green; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <!-- 顶部栏 -->
+  <div class="topbar">
+    <h3>乒乓球培训管理系统 - 学员端</h3>
+    <button onclick="back()">返回主页</button>
+  </div>
+
+  <!-- 主体内容 -->
+  <div class="container">
+    <!-- 账户余额 -->
+    <div class="card">
+      <h4>账户余额</h4>
+      <div class="balance" id="balance">￥0.00</div>
+    </div>
+
+    <!-- 月赛报名 -->
+    <div class="card">
+      <h4>月赛报名</h4>
+      <div id="tournament-info">加载中...</div>
+      <label for="group">选择参赛组别：</label>
+      <select id="group"></select>
+      <button onclick="registerTournament()">确认报名</button>
+      <div class="info" id="info"></div>
+    </div>
+
+    <!-- 赛程安排 -->
+    <div class="card">
+      <h4>我的赛程安排</h4>
+      <table>
+        <thead>
+          <tr>
+            <th>轮次</th>
+            <th>对手</th>
+            <th>球台编号</th>
+            <th>时间</th>
+          </tr>
+        </thead>
+        <tbody id="schedule">
+          <tr><td colspan="4">暂无赛程</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    function back() {
+      window.location.href = "/student-dashboard";
+    }
+
+    // 加载账户和月赛信息
+    async function loadData() {
+      const res = await fetch("/api/student/tournament/info");
+      const data = await res.json();
+
+      // 余额
+      document.getElementById("balance").innerText = "￥" + data.balance.toFixed(2);
+
+      // 月赛信息
+      const infoDiv = document.getElementById("tournament-info");
+      if (data.tournament) {
+        infoDiv.innerHTML = `
+          <p>月赛名称：${data.tournament.name}</p>
+          <p>比赛时间：${data.tournament.start_date} 至 ${data.tournament.end_date}</p>
+          <p>报名费：￥${data.tournament.fee}</p>
+        `;
+        // 组别
+        const groupSelect = document.getElementById("group");
+        groupSelect.innerHTML = '<option value="">请选择</option>';
+        (data.tournament.groups || []).forEach(g => {
+          const opt = document.createElement("option");
+          opt.value = g;
+          opt.textContent = g;
+          groupSelect.appendChild(opt);
+        });
+      } else {
+        infoDiv.innerHTML = "<p>本月暂无月赛</p>";
+      }
+
+      // 赛程
+      const tbody = document.getElementById("schedule");
+      tbody.innerHTML = "";
+      if (!data.schedule || data.schedule.length === 0) {
+        tbody.innerHTML = "<tr><td colspan='4'>暂无赛程</td></tr>";
+      } else {
+        data.schedule.forEach(s => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${s.round}</td>
+            <td>${s.opponent}</td>
+            <td>${s.table_number}</td>
+            <td>${s.time}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+    }
+
+    // 报名
+    async function registerTournament() {
+      const group = document.getElementById("group").value;
+      if (!group) {
+        alert("请选择组别！");
+        return;
+      }
+      const res = await fetch("/api/student/tournament/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ group })
+      });
+      const data = await res.json();
+      alert(data.message);
+      document.getElementById("info").innerText = data.message;
+      loadData();
+    }
+
+    loadData();
+  </script>
+</body>
+</html>
