@@ -1664,6 +1664,237 @@ def api_coach_message_read(msg_id):
     finally:
         conn.close()
 
+# ========== 教练个人资料 API ==========
+
+# 获取当前教练资料（API）
+@app.route("/api/coach/profile", methods=["GET"])
+def api_coach_profile():
+    if "role" not in session or session["role"] != "coach":
+        return jsonify({"error": "未授权"}), 403
+
+    coach_id = session.get("user_id")
+    conn = get_db_connection()
+    try:
+        with conn.cursor(pymysql.cursors.DictCursor) as cursor:
+            cursor.execute("""
+                SELECT id, username, real_name, gender, age, phone, email, campus_id,
+                       coach_level, achievements, photo_path, hourly_rate
+                FROM users
+                WHERE id=%s AND role='coach'
+            """, (coach_id,))
+            row = cursor.fetchone()
+            # 将 datetime、None 转为前端可用格式（若需要）
+            if row:
+                # 如果 photo_path 是相对路径，确保前端可以访问（这里直接返回原值）
+                return jsonify(row)
+            else:
+                return jsonify({"error": "教练信息未找到"}), 404
+    finally:
+        conn.close()
+
+
+# 更新教练资料（含头像上传）
+@app.route("/api/coach/profile/update", methods=["POST"])
+def api_coach_profile_update():
+    if "role" not in session or session["role"] != "coach":
+        return jsonify({"error": "未授权"}), 403
+
+    coach_id = session.get("user_id")
+
+    # 表单字段 (multipart/form-data)
+    real_name = request.form.get("real_name")
+    gender = request.form.get("gender")
+    age = request.form.get("age")
+    phone = request.form.get("phone")
+    email = request.form.get("email")
+    coach_level = request.form.get("coach_level")
+    achievements = request.form.get("achievements")
+    hourly_rate = request.form.get("hourly_rate")
+
+    avatar = None
+    if 'avatar' in request.files:
+        avatar = request.files['avatar']
+        # 简单校验
+        if avatar.filename == '':
+            avatar = None
+
+    # 保存头像（如果有）
+    avatar_path = None
+    if avatar:
+        upload_dir = os.path.join(app.root_path, 'static', 'uploads')
+        os.makedirs(upload_dir, exist_ok=True)
+        # 生成唯一文件名
+        ext = os.path.splitext(avatar.filename)[1].lower()
+        filename = f"coach_{coach_id}_{int(datetime.now().timestamp())}{ext}"
+        save_path = os.path.join(upload_dir, filename)
+        avatar.save(save_path)
+        # 存到 DB 的路径（供前端直接使用）
+        avatar_path = f"/static/uploads/{filename}"
+
+    # 合法性检查（简单）
+    try:
+        if age:
+            age = int(age)
+    except:
+        return jsonify({"message": "年龄必须为整数"}), 400
+
+    try:
+        if hourly_rate:
+            hourly_rate = float(hourly_rate)
+    except:
+        return jsonify({"message": "时薪格式错误"}), 400
+
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cursor:
+            # 使用 DictCursor 读取现有记录（若需要）
+            cursor = conn.cursor(pymysql.cursors.DictCursor)
+            cursor.execute("SELECT id FROM users WHERE id=%s AND role='coach'", (coach_id,))
+            if not cursor.fetchone():
+                return jsonify({"message": "教练不存在"}), 404
+
+            # 构造更新语句 — 仅更新提供的字段
+            fields = []
+            values = []
+            if real_name is not None:
+                fields.append("real_name=%s"); values.append(real_name)
+            if gender is not None:
+                fields.append("gender=%s"); values.append(gender)
+            if age is not None and age != '':
+                fields.append("age=%s"); values.append(age)
+            if phone is not None:
+                fields.append("phone=%s"); values.append(phone)
+            if email is not None:
+                fields.append("email=%s"); values.append(email)
+            if coach_level is not None:
+                fields.append("coach_level=%s"); values.append(coach_level)
+                # 如果你希望等级变更自动更新时薪，请在这里处理（目前不自动设置）
+            if achievements is not None:
+                fields.append("achievements=%s"); values.append(achievements)
+            if hourly_rate is not None and hourly_rate != '':
+                fields.append("hourly_rate=%s"); values.append(hourly_rate)
+            if avatar_path:
+                fields.append("photo_path=%s"); values.append(avatar_path)
+
+            if fields:
+                sql = "UPDATE users SET " + ", ".join(fields) + " WHERE id=%s"
+                values.append(coach_id)
+                cursor.execute(sql, tuple(values))
+                conn.commit()
+                log_action("Coach updated profile", f"Coach ID {coach_id}")
+                return jsonify({"message": "资料已保存"})
+            else:
+                return jsonify({"message": "没有需要更新的字段"}), 400
+    finally:
+        conn.close()
+
+
+# 修改密码
+@app.route("/api/coach/profile/change_password", methods=["POST"])
+def api_coach_change_password():
+    if "role" not in session or session["role"] != "coach":
+        return jsonify({"error": "未授权"}), 403
+
+    coach_id = session.get("user_id")
+    data = request.get_json() or {}
+    old_password = data.get("old_password")
+    new_password = data.get("new_password")
+
+    if not old_password or not new_password:
+        return jsonify({"message": "参数错误"}), 400
+
+    conn = get_db_connection()
+    try:
+        with conn.cursor(pymysql.cursors.DictCursor) as cursor:
+            cursor.execute("SELECT password FROM users WHERE id=%s", (coach_id,))
+            row = cursor.fetchone()
+            if not row:
+                return jsonify({"message": "用户不存在"}), 404
+
+            stored = row.get("password")
+            if stored is None:
+                return jsonify({"message": "当前密码未设置，无法修改"}), 400
+
+            # 统一为字符串并 strip 空白（避免存时有换行或空格导致匹配失败）
+            if isinstance(stored, bytes):
+                try:
+                    stored = stored.decode()
+                except Exception:
+                    stored = str(stored)
+            stored = str(stored).strip()
+
+            ok = False
+            # 先尝试按哈希检查（如果 stored 是哈希，会返回 True；若不是哈希，会返回 False）
+            try:
+                if check_password_hash(stored, old_password):
+                    ok = True
+            except Exception:
+                # 安全地忽略异常，继续下面的明文比较
+                ok = False
+
+            # 如果哈希检查未通过，做明文比较（兼容历史明文存储）
+            if not ok:
+                if stored == old_password:
+                    ok = True
+
+            if not ok:
+                return jsonify({"message": "当前密码错误"}), 400
+
+            # 一切通过后，用哈希存储新密码（更安全）
+            try:
+                new_hashed = generate_password_hash(new_password)
+                cursor.execute("UPDATE users SET password=%s WHERE id=%s", (new_hashed, coach_id))
+            except Exception:
+                # 如果意外失败（极少），回退到明文（不推荐），但保证流程不崩溃
+                cursor.execute("UPDATE users SET password=%s WHERE id=%s", (new_password, coach_id))
+
+            conn.commit()
+            log_action("Coach changed password", f"Coach ID {coach_id}")
+            return jsonify({"message": "密码修改成功"})
+    finally:
+        conn.close()
+
+# 教练课表页面
+@app.route("/coach/schedule")
+def coach_schedule_page():
+    if "role" not in session or session["role"] != "coach":
+        return redirect(url_for("login"))
+    return render_template("coach_schedule.html")
+
+
+# 教练课表 API
+@app.route("/api/coach/schedule")
+def api_coach_schedule():
+    if "role" not in session or session["role"] != "coach":
+        return jsonify({"error": "未授权"}), 403
+
+    coach_id = session.get("user_id")
+    start = request.args.get("start")
+    end = request.args.get("end")
+    if not start or not end:
+        return jsonify({"error": "缺少日期参数"}), 400
+
+    conn = get_db_connection()
+    try:
+        with conn.cursor(pymysql.cursors.DictCursor) as cursor:
+            cursor.execute("""
+                SELECT a.id, a.start_time, a.end_time, a.table_number, a.status,
+                       u.real_name AS student_name, u.phone AS student_phone
+                FROM appointments a
+                JOIN users u ON a.student_id = u.id
+                WHERE a.coach_id=%s AND a.start_time BETWEEN %s AND %s
+                ORDER BY a.start_time ASC
+            """, (coach_id, start, end))
+            rows = cursor.fetchall()
+            for r in rows:
+                if isinstance(r["start_time"], (datetime,)):
+                    r["start_time"] = r["start_time"].strftime("%Y-%m-%d %H:%M")
+                if isinstance(r["end_time"], (datetime,)):
+                    r["end_time"] = r["end_time"].strftime("%Y-%m-%d %H:%M")
+            return jsonify(rows)
+    finally:
+        conn.close()
+
 
 
 

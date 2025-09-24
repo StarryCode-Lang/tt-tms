@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>教练端 - 我的课表</title>
+  <style>
+    body { margin:0; font-family:"Segoe UI","PingFang SC",sans-serif; background:#f0f2f5; display:flex; min-height:100vh; }
+    .sidebar { width:240px; background:linear-gradient(180deg,#4facfe,#0056b3); color:#fff; padding:20px 0; }
+    .sidebar h2 { text-align:center; margin-bottom:2rem; font-weight:600; }
+    .sidebar a { color:#fff; padding:12px 20px; display:block; text-decoration:none; margin:6px 15px; border-radius:8px; }
+    .sidebar a:hover { background:rgba(255,255,255,0.2); }
+    .main { flex:1; display:flex; flex-direction:column; }
+    .topbar { height:60px; background:#fff; display:flex; align-items:center; justify-content:space-between; padding:0 24px; border-bottom:1px solid #ddd; }
+    .content { padding:30px; }
+    .card { background:#fff; border-radius:12px; padding:20px; box-shadow:0 4px 12px rgba(0,0,0,0.05); }
+    h3 { margin:0 0 16px; color:#333; }
+    .filter { margin-bottom:20px; }
+    input[type=date] { padding:6px 10px; border:1px solid #ddd; border-radius:6px; }
+    button { padding:8px 14px; border:none; border-radius:6px; cursor:pointer; }
+    .btn-primary { background:#4facfe; color:#fff; }
+    .btn-primary:hover { opacity:0.9; }
+    table { width:100%; border-collapse:collapse; margin-top:12px; }
+    th,td { padding:10px; text-align:center; border-bottom:1px solid #eee; }
+    th { background:#f9fafc; color:#333; font-weight:600; }
+    tr:hover { background:#f6fbff; }
+    .status { padding:4px 8px; border-radius:6px; font-size:12px; }
+    .status.confirmed { background:#e6ffed; color:#2e7d32; }
+    .status.pending { background:#fff3cd; color:#856404; }
+    .status.rejected, .status.cancelled { background:#fdecea; color:#c62828; }
+  </style>
+</head>
+<body>
+  <!-- 左侧导航 -->
+  <div class="sidebar">
+    <h2>教练端</h2>
+    <a href="/coach-dashboard">🏠 首页</a>
+    <a href="/coach/appointments">📅 课程管理</a>
+    <a href="/coach/students">👨‍🎓 学生管理</a>
+    <a href="/coach/availability">⏰ 时间设置</a>
+    <a href="/coach/evaluations">📝 训练评价</a>
+    <a href="/coach/schedule">📊 我的课表</a>
+    <a href="/coach/messages">📩 系统消息</a>
+    <a href="/coach/profile">⚙️ 个人设置</a>
+  </div>
+
+  <!-- 主体 -->
+  <div class="main">
+    <div class="topbar">
+      <h3>我的课表</h3>
+      <button class="btn-primary" onclick="logout()">退出登录</button>
+    </div>
+    <div class="content">
+      <div class="card">
+        <div class="filter">
+          <label>起始日期：</label>
+          <input type="date" id="startDate">
+          <label>结束日期：</label>
+          <input type="date" id="endDate">
+          <button class="btn-primary" onclick="loadSchedule()">查询</button>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>学生姓名</th>
+              <th>联系方式</th>
+              <th>开始时间</th>
+              <th>结束时间</th>
+              <th>球台</th>
+              <th>状态</th>
+            </tr>
+          </thead>
+          <tbody id="scheduleBody">
+            <tr><td colspan="6">请先选择时间范围并点击查询</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+<script>
+  function logout(){ window.location.href='/logout'; }
+
+  async function loadSchedule(){
+    const start=document.getElementById("startDate").value;
+    const end=document.getElementById("endDate").value;
+    if(!start||!end){alert("请选择起止日期");return;}
+    const res=await fetch(`/api/coach/schedule?start=${start}&end=${end}`);
+    const data=await res.json();
+    const body=document.getElementById("scheduleBody");
+    body.innerHTML="";
+    if(!data.length){body.innerHTML=`<tr><td colspan="6">该时间段没有课程</td></tr>`;return;}
+    data.forEach(item=>{
+      const tr=document.createElement("tr");
+      tr.innerHTML=`
+        <td>${item.student_name||'-'}</td>
+        <td>${item.student_phone||'-'}</td>
+        <td>${item.start_time}</td>
+        <td>${item.end_time}</td>
+        <td>${item.table_number||'未分配'}</td>
+        <td><span class="status ${item.status}">${item.status}</span></td>`;
+      body.appendChild(tr);
+    });
+  }
+</script>
+</body>
+</html>
